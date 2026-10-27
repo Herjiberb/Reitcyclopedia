@@ -41,7 +41,7 @@ import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} f
 import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
-const firebaseConfig={apiKey:"YOUR_API_KEY",authDomain:"YOUR_PROJECT.firebaseapp.com",projectId:"YOUR_PROJECT",appId:"YOUR_APP_ID"};
+const firebaseConfig={apiKey:"AIzaSyDrf2lcyMJIFO9H3xQQiI0mz8Y-c_Xgg_o",authDomain:"reitcyclopedia.firebaseapp.com",projectId:"reitcyclopedia",storageBucket:"reitcyclopedia.firebasestorage.app",messagingSenderId:"361636082909",appId:"1:361636082909:web:78402de7cb5ff2052e9734"};
 const ADMIN="bryantreitzel@gmail.com", MAXB=68000;
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
 const q=s=>document.querySelector(s), app=q('#app');
