@@ -89,7 +89,7 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}main{
 .fancy a.chip,.fancy .list a:hover{text-decoration:none}.fancy .list a{border-radius:10px;padding:5px 8px;margin:0 -8px;transition:background .15s}.fancy .list a:hover{background:linear-gradient(90deg,#e8f0fd,transparent)}
 .fancy .mo .md h3{--gt:linear-gradient(90deg,#1b2433,#1565d8)}
 .vb{background:linear-gradient(90deg,#fff4d6,#fffaec);border-bottom:1px solid #f1dfa8;padding:10px 18px;text-align:center;font-size:15px}.vb[hidden]{display:none}.vb button{padding:4px 14px;margin-left:4px}.ab{display:flex;flex-direction:column;gap:10px}.ab .row{margin:0}.ab .row button{flex:1}
-</style></head><body>
+.sw{position:relative}.dd{position:absolute;left:0;right:0;top:100%;z-index:30;max-height:300px;overflow-y:auto;margin-top:4px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.25)}</style></head><body>
 <header><div class="bar"><a class="logo" href="#/"><span class="wm">Reitcyclopedia</span></a><span class="sp"></span><span id="nav"></span></div></header><div id="vb" class="vb" hidden></div>
 <div id="pg"></div><main id="app"></main>
 <footer><div class="bar"><b style="color:var(--lk)">Reitcyclopedia</b><span class="mu">Free to read, free to write.</span><span class="sp"></span><a href="#/">Home</a><a href="#/browse">Browse</a><a href="#/random">Random</a><a href="#/help">Help</a><button class="g" id="fx">Fancy UI: Off</button></div></footer>
@@ -211,8 +211,12 @@ async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=de
  try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='rebuild')await rebuild();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
  catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
 const need=f=>user&&user.emailVerified?f():app.innerHTML=`<div class="card">${user?'Verify your email address first (see the yellow bar above).':'Sign in to continue.'}</div>`;
-const sbox=v=>`<form class="search row" id="sf"><input name="q" autocomplete="off" placeholder="Search articles (live)" value="${esc(v||'')}"><button>Search</button></form><div class="card list" id="sr" hidden></div>`;
-function wireSearch(){const f=q('#sf'),i=f.q,o=q('#sr');const go=()=>{const v=i.value.trim();if(!v){o.hidden=true;return}o.hidden=false;o.innerHTML=srch(v).map(row).join('')||`No match. <a href="#/new/${slug(v)}">Write this article</a>.`};i.oninput=go;f.onsubmit=e=>{e.preventDefault();location.hash='#/s/'+encodeURIComponent(i.value);return false};IDXCB=go;go()}
+const sbox=v=>`<div class="sw"><form class="search row" id="sf"><input name="q" autocomplete="off" placeholder="Search articles" value="${esc(v||'')}"><button>Search</button></form><div class="card list dd" id="sr" hidden></div></div>`;
+function wireSearch(){const f=q('#sf'),i=f.q,o=q('#sr');let R=[],n=0;
+ const more=()=>{const c=R.slice(n,n+20);n+=c.length;o.insertAdjacentHTML('beforeend',c.map(row).join(''))};
+ const go=()=>{const v=i.value.trim();if(!v){o.hidden=true;return}R=srch(v,300);n=0;o.hidden=false;o.scrollTop=0;o.innerHTML='';if(R.length)more();else o.innerHTML=`<div class="mu" style="padding:10px">No match. <a href="#/new/${slug(v)}">Write this article</a>.</div>`};
+ o.onscroll=()=>{if(n<R.length&&o.scrollTop+o.clientHeight>=o.scrollHeight-40)more()};
+ i.oninput=go;i.onfocus=()=>{if(i.value.trim())go()};f.onsubmit=e=>{e.preventDefault();if(R[0])location.hash='#/a/'+R[0].i;return false};IDXCB=()=>{if(!o.hidden)go()}}
 
 /* ---- search index: ONE compressed doc (meta/index), cached locally, drives search/categories/home/browse/random ---- */
 const IDXD=doc(db,'meta','index');let IDX={rev:0,n:0,e:[]},BYS={},IDXP=null,IDXCB=null;
@@ -220,12 +224,15 @@ const normQ=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u0
 function setIdx(rev,n,rows){IDX={rev,n,e:rows.map(r=>({i:r[0],t:r[1],y:r[2],s:r[3],u:r[4],k:normQ(r[1]),ks:normQ(r[3])}))};BYS={};IDX.e.forEach(x=>BYS[slug(x.t)]=x.i);IDX.e.forEach(x=>BYS[x.i]=x.i)}
 const rowsOf=()=>IDX.e.map(x=>[x.i,x.t,x.y,x.s,x.u]);
 const saveIdxCache=()=>idb('put','idx',{rev:IDX.rev,n:IDX.n,rows:rowsOf(),at:Date.now()});
-function loadIdx(){if(IDXP)return IDXP;
- return IDXP=(async()=>{const c=await idb('get','idx');let fresh=false;
-  if(c&&c.rows){setIdx(c.rev,c.n,c.rows);fresh=Date.now()-c.at<300000}
-  if(fresh)return;
-  const run=async()=>{try{const s=await getDoc(IDXD);if(s.exists()){const d=s.data();if(!c||d.rev!==IDX.rev||!c.rows){setIdx(d.rev,d.n,await unpack(d.z))}}else if(!c)setIdx(0,0,[]);await saveIdxCache();IDXCB&&IDXCB()}catch(e){}};
-  if(c&&c.rows)run();else await run()})()}
+let IDXAT=0;
+function loadIdx(force){if(IDXP&&!force&&Date.now()-IDXAT<300000)return IDXP;
+ return IDXP=(async()=>{
+  if(!IDX.rev&&!IDX.e.length){const c=await idb('get','idx');if(c&&c.rows){setIdx(c.rev,c.n,c.rows);IDXAT=c.at}}
+  if(!force&&IDXAT&&Date.now()-IDXAT<300000)return;
+  const had=IDX.rev>0||IDX.e.length>0;
+  const run=async()=>{try{const s=await getDoc(IDXD);let ch=false;if(s.exists()){const d=s.data();if(d.rev!==IDX.rev||!had){setIdx(d.rev,d.n,await unpack(d.z));ch=true}}else if(!had)setIdx(0,0,[]);IDXAT=Date.now();await saveIdxCache();IDXCB&&IDXCB();if(ch&&had&&/^(#\/?)?$|^#\/(t|browse)/.test(location.hash))route()}catch(e){}};
+  if(had)run();else await run()})()}
+addEventListener('click',e=>{const o=q('#sr');if(o&&!e.target.closest('.sw'))o.hidden=true});
 function srch(t,lim=15){const n=normQ(t);if(!n)return[];const w=n.split(' '),r=[];
  for(const x of IDX.e){const k=x.k;let sc=0;if(k===n)sc=100;else if(k.startsWith(n))sc=80;else if(k.includes(' '+n))sc=60;else if(w.every(q=>k.includes(q)))sc=45;else if(k.includes(n))sc=40;else if(w.every(q=>x.ks.includes(q)||k.includes(q)))sc=15;if(sc)r.push([sc-k.length/100,x])}
  return r.sort((a,b)=>b[0]-a[0]).slice(0,lim).map(a=>a[1])}
@@ -251,7 +258,7 @@ async function txArticle(id,op,meta){const ar=doc(db,'articles',id),day='d'+new 
    tx.update(ar,{title:meta.title,titleLower:meta.title.toLowerCase(),summary:meta.summary,type:meta.type,body:meta.body,rev:cur.rev+1,idxRev:rev,updated:serverTimestamp()});tx.set(cr,{a:c.a,e:c.e+1});
    if(meta.drop)tx.delete(meta.drop)}
   out={rev,n,rows}});
- setIdx(out.rev,out.n,out.rows);saveIdxCache()}
+ setIdx(out.rev,out.n,out.rows);IDXAT=Date.now();saveIdxCache()}
 async function rebuild(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
  app.innerHTML='<div class="card"><h1>Rebuild search index</h1><p class="mu">Reads every article once and rewrites the index. Use it once to migrate existing articles, or to repair the index after manual database changes.</p><button id="rb">Rebuild now</button> <span id="rbs" class="mu"></span></div>';
  q('#rb').onclick=async()=>{try{q('#rbs').textContent='Working…';const r=await getDocs(collection(db,'articles')),rows=r.docs.map(d=>{const x=d.data();return[d.id,x.title,x.type,(x.summary||'').slice(0,110),x.updated?.toMillis?.()||0]}),s=await getDoc(IDXD),rev=(s.exists()?s.data().rev:0)+1;
@@ -276,7 +283,7 @@ function help(){const ex=x=>`<pre class="cb">${esc(x)}</pre>`;app.innerHTML=`<di
 <h2>Infobox</h2><p>Add one "Label: Value" per line. Choosing a type pre-fills suggested labels.</p>
 <h2>AI article prompt</h2><p>In the editor, click <b>Copy prompt</b>, paste it into any chatbot, tell it the subject and what to cover, then copy its reply and click <b>Paste response</b>. You get a preview to approve before anything is filled in. Always check the facts.</p>
 <h2>Limits</h2><p>25 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
-async function search(t){await loadIdx();app.innerHTML=sbox(t);wireSearch()}
+async function search(t){await home();const i=q('#sf').q;i.value=t;i.dispatchEvent(new Event('input'))}
 
 /* ---- read ---- */
 async function load(id){const s=await getDoc(doc(db,'articles',id));if(!s.exists())return null;const d=s.data();return{id,...d,...await unpack(d.body)}}
@@ -286,7 +293,7 @@ function render(a){let h=`<h1>${esc(a.title)}</h1><div class="mu">${esc(a.type)}
  for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?md(b.x):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${md(b.x)}</details>`;
  return h}
 async function view(id){app.innerHTML='<div class="card">Loading…</div>';const al=BYS[id];if(al&&al!==id)return location.replace('#/a/'+al);const a=await load(id);
- if(!a){app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
+ if(!a){if(BYS[id]){setIdx(IDX.rev,IDX.n,rowsOf().filter(r=>r[0]!==id));saveIdxCache();loadIdx(true)}app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
  track(id);document.title=a.title+' – Reitcyclopedia';
  app.innerHTML=`<div class="card">${render(a)}<div style="clear:both"></div><hr style="border:0;border-top:1px solid var(--ln)"><div class="row mu">Revision ${a.rev} · by ${esc(a.authorName||'unknown')} ${user?`<a href="#/edit/${id}"><button class="g">Edit</button></a>`:''} ${isAdmin()?'<button class="d" id="dl">Delete</button>':''}</div></div>`;
  if(isAdmin())q('#dl').onclick=async()=>{if(await uiConfirm('Delete this article?')){try{await txArticle(id,'delete');location.hash='#/'}catch(e){uiAlert(e.message)}}}}
