@@ -290,7 +290,7 @@ async function save(){const er=q('#er');er.textContent='';
  const day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),cs=await getDoc(cr),c=cs.exists()?cs.data():{a:0,e:0};
  const b=writeBatch(db),meta={title,titleLower:title.toLowerCase(),type,summary,body,authorUid:user.uid,authorName:user.displayName||'',updated:serverTimestamp()};
  if(!EID){if((await getDoc(doc(db,'articles',id))).exists())throw Error('An article with this title already exists.');
-  if(c.a>=10)throw Error('Daily limit reached: 10 new articles per day.');
+  if(c.a>=10)throw Error('Daily limit reached: 25 new articles per day.');
   b.set(doc(db,'articles',id),{...meta,rev:1});b.set(cr,{a:c.a+1,e:c.e});await b.commit();location.hash='#/a/'+id}
  else if(isAdmin()){const cur=await getDoc(doc(db,'articles',id)),o=cur.data();
   b.set(doc(db,'articles',id,'revs',String(o.rev)),{body:o.body,by:o.authorName||''});b.update(doc(db,'articles',id),{summary,type,body,rev:o.rev+1,updated:serverTimestamp()});await b.commit();location.hash='#/a/'+id}
