@@ -88,13 +88,14 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}main{
 .fancy summary{background:linear-gradient(90deg,#1565d8,#6d86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .fancy a.chip,.fancy .list a:hover{text-decoration:none}.fancy .list a{border-radius:10px;padding:5px 8px;margin:0 -8px;transition:background .15s}.fancy .list a:hover{background:linear-gradient(90deg,#e8f0fd,transparent)}
 .fancy .mo .md h3{--gt:linear-gradient(90deg,#1b2433,#1565d8)}
+.vb{background:linear-gradient(90deg,#fff4d6,#fffaec);border-bottom:1px solid #f1dfa8;padding:10px 18px;text-align:center;font-size:15px}.vb[hidden]{display:none}.vb button{padding:4px 14px;margin-left:4px}.ab{display:flex;flex-direction:column;gap:10px}.ab .row{margin:0}.ab .row button{flex:1}
 </style></head><body>
-<header><div class="bar"><a class="logo" href="#/"><span class="wm">Reitcyclopedia</span></a><span class="sp"></span><span id="nav"></span></div></header>
+<header><div class="bar"><a class="logo" href="#/"><span class="wm">Reitcyclopedia</span></a><span class="sp"></span><span id="nav"></span></div></header><div id="vb" class="vb" hidden></div>
 <div id="pg"></div><main id="app"></main>
 <footer><div class="bar"><b style="color:var(--lk)">Reitcyclopedia</b><span class="mu">Free to read, free to write.</span><span class="sp"></span><a href="#/">Home</a><a href="#/browse">Browse</a><a href="#/random">Random</a><a href="#/help">Help</a><button class="g" id="fx">Fancy UI: Off</button></div></footer>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,GoogleAuthProvider,GithubAuthProvider,signInWithPopup,signOut,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendEmailVerification,sendPasswordResetEmail,sendSignInLinkToEmail,isSignInWithEmailLink,signInWithEmailLink} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp,getCountFromServer} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
@@ -106,7 +107,7 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const slug=t=>t.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const pretty=s=>s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*\*(.+?)\*\*\*/g,'<b><i>$1</i></b>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/==(.+?)==/g,'<mark>$1</mark>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-const isAdmin=()=>user&&user.emailVerified&&ADMINS.includes(user.email);
+const isAdmin=()=>user&&user.emailVerified&&ADMINS.includes(user.email)&&user.providerData.some(p=>p.providerId==='google.com');
 let user=null,PRE=null;
 /* ---- settings (IndexedDB), UI mode, modals ---- */
 const idb=(m,k,v)=>new Promise(res=>{try{const r=indexedDB.open('rc',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onerror=()=>res();r.onsuccess=()=>{const t=r.result.transaction('s',m==='get'?'readonly':'readwrite'),o=t.objectStore('s'),x=m==='get'?o.get(k):o.put(v,k);x.onsuccess=()=>res(x.result);x.onerror=()=>res()}}catch(e){res()}});
@@ -169,20 +170,47 @@ addEventListener('visibilitychange',()=>document.hidden&&flush());addEventListen
 
 /* ---- auth ---- */
 function renderNav(){const n=q('#nav');
- if(!user){n.innerHTML='<button id="si">Sign in with Google</button>';q('#si').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>uiAlert(e.message));return}
+ if(!user){n.innerHTML='<button id="si">Sign in</button>';q('#si').onclick=openAuth;return}
  const nm=esc((user.displayName||user.email).slice(0,18)),it=`<a href="#/new">New article</a>${isAdmin()?'<a href="#/review">Review log</a>':''}<a href="#/help">Help</a><a href="#" id="so">Sign out</a>`;
  n.innerHTML=FANCY?`<div class="menu"><button class="g" id="mb" aria-haspopup="true">${nm} ▾</button><div class="mp" id="mn" hidden>${it}</div></div>`:`<span class="mu">${nm}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`;
  if(FANCY){const m=q('#mn');q('#mb').onclick=e=>{e.stopPropagation();m.hidden=!m.hidden};m.onclick=()=>m.hidden=true}
  q('#so').onclick=e=>{e.preventDefault();signOut(auth)}}
 addEventListener('click',()=>{const m=q('#mn');if(m)m.hidden=true});
-onAuthStateChanged(auth,u=>{user=u;renderNav();route()});
+onAuthStateChanged(auth,u=>{user=u;renderNav();renderVb();route()});
+
+/* ---- accounts: Google, GitHub, email+password (verified), email link ---- */
+const AU=location.origin+location.pathname;
+const aerr=e=>({'auth/invalid-credential':'Wrong email or password.','auth/email-already-in-use':'That email already has an account. Sign in instead.','auth/weak-password':'Use a password of at least 6 characters.','auth/invalid-email':'Enter a valid email address.','auth/account-exists-with-different-credential':'This email already uses a different sign-in method. Use that one.','auth/popup-closed-by-user':' ','auth/cancelled-popup-request':' ','auth/too-many-requests':'Too many attempts. Wait a bit and try again.','auth/operation-not-allowed':'That sign-in method is not enabled in Firebase yet.'}[e.code]??e.message);
+const closeAuth=()=>document.querySelector('.mo [data-r]')?.click();
+function openAuth(){
+ modal({title:'Sign in to Reitcyclopedia',ok:'Close',body:`<div class="ab"><button class="g" data-p="google">Continue with Google</button><button class="g" data-p="github">Continue with GitHub</button>
+ <p class="mu" style="text-align:center;margin:4px 0">or use your email</p>
+ <input id="ae" type="email" placeholder="Email" autocomplete="email"><input id="ap" type="password" placeholder="Password" autocomplete="current-password">
+ <div class="row"><button data-p="in">Sign in</button><button class="g" data-p="up">Create account</button></div>
+ <div class="row"><button class="g" data-p="link">Email me a sign-in link</button><button class="g" data-p="reset">Forgot password</button></div><div id="am" class="mu"></div></div>`});
+ const m=document.querySelector('.mo'),say=(t,c)=>{const a=m.querySelector('#am');a.className=c||'mu';a.textContent=t};
+ m.addEventListener('click',async e=>{const p=e.target.dataset?.p;if(!p)return;const em=m.querySelector('#ae').value.trim(),pw=m.querySelector('#ap').value;say('');
+  try{
+   if(p==='google'||p==='github'){await signInWithPopup(auth,p==='google'?new GoogleAuthProvider():new GithubAuthProvider());closeAuth()}
+   else if(p==='in'){await signInWithEmailAndPassword(auth,em,pw);closeAuth()}
+   else if(p==='up'){if(pw.length<6)return say('Use a password of at least 6 characters.','err');const c=await createUserWithEmailAndPassword(auth,em,pw);await sendEmailVerification(c.user,{url:AU});say('Account created. Open the verification link we emailed you (check spam), then click "I\'ve verified" in the yellow bar.','ok')}
+   else if(p==='link'){if(!em)return say('Enter your email first.','err');await sendSignInLinkToEmail(auth,em,{url:AU,handleCodeInApp:true});localStorage.rc_email=em;say('Sign-in link sent. Open it in this browser.','ok')}
+   else if(p==='reset'){if(!em)return say('Enter your email first.','err');await sendPasswordResetEmail(auth,em);say('If an account exists for that email, a reset link is on its way.','ok')}
+  }catch(x){say(aerr(x),'err')}})}
+function renderVb(){const b=q('#vb');if(!user||user.emailVerified){b.hidden=true;return}b.hidden=false;
+ b.innerHTML=`Verify <b>${esc(user.email)}</b> to publish or edit. Check your inbox and spam. <button class="g" id="vr">Resend email</button> <button class="g" id="vc">I've verified</button>`;
+ q('#vr').onclick=async()=>{try{await sendEmailVerification(user,{url:AU});toast('Verification email sent.')}catch(e){uiAlert(aerr(e))}};
+ q('#vc').onclick=async()=>{await user.reload();await user.getIdToken(true);user=auth.currentUser;renderVb();renderNav();route();if(!user.emailVerified)toast('Not verified yet.')}}
+(async()=>{if(!isSignInWithEmailLink(auth,location.href))return;let em=localStorage.rc_email;
+ if(!em){const r=await modal({title:'Confirm your email',body:'<p class="mu">Enter the email address the link was sent to.</p><textarea rows="1"></textarea>',ok:'Continue',cancel:'Cancel'});if(!r.ok)return;em=(r.val||'').trim()}
+ try{await signInWithEmailLink(auth,em,location.href);localStorage.removeItem('rc_email');history.replaceState(null,'',AU+'#/');route()}catch(e){uiAlert(aerr(e))}})();
 
 /* ---- router ---- */
 addEventListener('hashchange',route);
 async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;document.title='Reitcyclopedia';scrollTo({top:0,behavior:'instant'});
  try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
  catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
-const need=f=>user?f():app.innerHTML='<div class="card">Sign in with Google to continue.</div>';
+const need=f=>user&&user.emailVerified?f():app.innerHTML=`<div class="card">${user?'Verify your email address first (see the yellow bar above).':'Sign in to continue.'}</div>`;
 const sbox=v=>`<form class="search row" onsubmit="location.hash='#/s/'+encodeURIComponent(this.q.value);return false"><input name="q" placeholder="Search articles by title" value="${esc(v||'')}"><button>Search</button></form>`;
 
 /* ---- home ---- */
