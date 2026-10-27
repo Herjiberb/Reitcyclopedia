@@ -1,1 +1,174 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reitcyclopedia</title>
+<link href="https://fonts.googleapis.com/css2?family=Average&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f7fc;--card:#fff;--tx:#1e2633;--mu:#667085;--ln:#e3e9f3;--lk:#1565d8;--lkb:#e8f0fd}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.7 'Average',Georgia,serif}
+a{color:var(--lk);text-decoration:none}a:hover{text-decoration:underline}
+header{background:var(--card);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:5}
+.bar{max-width:980px;margin:auto;display:flex;align-items:center;gap:14px;padding:10px 18px}
+.logo{font-size:23px;color:var(--lk);font-weight:normal}.sp{flex:1}
+main{max-width:980px;margin:22px auto;padding:0 18px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:18px;padding:24px 28px;margin-bottom:18px}
+h1{font-size:34px;margin:0 0 6px;font-weight:normal}h2{font-size:25px;margin:26px 0 8px;font-weight:normal;border-bottom:1px solid var(--ln);padding-bottom:4px}h3{font-size:20px;margin:0 0 6px;font-weight:normal}
+input,select,textarea,button{font:inherit;font-size:16px}
+input,select,textarea{width:100%;padding:9px 13px;border:1px solid var(--ln);border-radius:12px;background:#fff;color:var(--tx)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--lk);outline-offset:1px}
+button{background:var(--lk);color:#fff;border:0;border-radius:999px;padding:8px 20px;cursor:pointer}
+button.g{background:var(--lkb);color:var(--lk);padding:6px 13px}button.d{background:#d92d20}
+.mu{color:var(--mu);font-size:15px}.row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.search{max-width:560px;margin:auto}.hero{text-align:center;padding:30px 0 10px}
+.hero h1{font-size:44px;color:var(--lk)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.list a{display:block;padding:5px 0}
+.info{float:right;width:270px;margin:0 0 14px 22px;border:1px solid var(--ln);border-radius:14px;background:var(--bg);padding:12px 14px;font-size:15px;line-height:1.5}
+.info h4{margin:0 0 8px;text-align:center;font-weight:normal;font-size:18px}
+.info dl{margin:0}.info dt{color:var(--mu);margin-top:6px}.info dd{margin:0}
+details{border:1px solid var(--ln);border-radius:12px;padding:8px 14px;margin:10px 0;clear:both}summary{cursor:pointer;color:var(--lk)}
+.blk{border:1px solid var(--ln);border-radius:14px;padding:10px;margin-bottom:10px}
+.err{color:#d92d20;margin:8px 0}.ok{color:#067647}
+pre.df{background:var(--bg);border-radius:12px;padding:10px;white-space:pre-wrap;font-size:14px;max-height:260px;overflow:auto}
+.add{color:#067647}.del{color:#d92d20}
+@media(max-width:640px){.info{float:none;width:100%;margin:0 0 14px}.card{padding:18px}}
+</style></head><body>
+<header><div class="bar"><a class="logo" href="#/">Reitcyclopedia</a><span class="sp"></span><span id="nav"></span></div></header>
+<main id="app"></main>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
+const firebaseConfig={apiKey:"YOUR_API_KEY",authDomain:"YOUR_PROJECT.firebaseapp.com",projectId:"YOUR_PROJECT",appId:"YOUR_APP_ID"};
+const ADMIN="bryantreitzel@gmail.com", MAXB=68000;
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const q=s=>document.querySelector(s), app=q('#app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const slug=t=>t.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const pretty=s=>s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+const isAdmin=()=>user&&user.emailVerified&&user.email===ADMIN;
+let user=null;
+
+/* ---- compression: JSON -> gzip -> base64 ---- */
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)};
+const unb=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const pipe=async(d,T)=>new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new T('gzip'))).arrayBuffer());
+const pack=async o=>b64(await pipe(JSON.stringify(o),CompressionStream));
+const unpack=async s=>JSON.parse(new TextDecoder().decode(await pipe(unb(s),DecompressionStream)));
+
+/* ---- templates ---- */
+const TPL={Person:['Born','Died','Nationality','Occupation'],Place:['Location','Country','Population','Established'],Organization:['Founded','Founder','Headquarters','Industry'],Concept:['Field','Origin','Related'],Event:['Date','Location','Participants','Outcome'],General:[]};
+
+/* ---- analytics (buffered, one write per session) ---- */
+const buf={};let hist=JSON.parse(localStorage.rc_hist||'{}');
+const track=s=>{buf[s]=(buf[s]||0)+1;hist[s]=(hist[s]||0)+1;localStorage.rc_hist=JSON.stringify(hist)};
+async function flush(){const k=Object.keys(buf);if(!k.length)return;const v={};let t=0;k.forEach(s=>{v[s]=increment(buf[s]);t+=buf[s];delete buf[s]});
+ try{await setDoc(doc(db,'stats','s'+Math.floor(Math.random()*3)),{v,t:increment(t)},{merge:true})}catch(e){}}
+addEventListener('visibilitychange',()=>document.hidden&&flush());addEventListener('pagehide',flush);
+
+/* ---- auth ---- */
+onAuthStateChanged(auth,u=>{user=u;q('#nav').innerHTML=u?`<span class="mu">${esc(u.displayName||u.email)}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`:'<button id="si">Sign in with Google</button>';
+ q('#si')&&(q('#si').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>alert(e.message)));q('#so')&&(q('#so').onclick=()=>signOut(auth));route()});
+
+/* ---- router ---- */
+addEventListener('hashchange',route);
+async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));scrollTo(0,0);
+ try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else await home()}
+ catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
+const need=f=>user?f():app.innerHTML='<div class="card">Sign in with Google to continue.</div>';
+const sbox=v=>`<form class="search row" onsubmit="location.hash='#/s/'+encodeURIComponent(this.q.value);return false"><input name="q" placeholder="Search articles by title" value="${esc(v||'')}"><button>Search</button></form>`;
+
+/* ---- home ---- */
+async function home(){app.innerHTML='<div class="hero"><h1>Reitcyclopedia</h1><p class="mu">A free encyclopedia anyone can write.</p></div>'+sbox()+'<div id="hm"></div>';
+ const [st,rec]=await Promise.all([Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(8)))]);
+ const tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});
+ const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8);
+ const mine=Object.entries(hist).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const L=a=>a.map(([s,n])=>`<a href="#/a/${s}">${esc(pretty(s))} <span class="mu">${n?'('+n+')':''}</span></a>`).join('')||'<span class="mu">Nothing yet.</span>';
+ q('#hm').innerHTML=`<div class="grid"><div class="card list"><h3>Trending</h3>${L(top)}<p class="mu">${views.toLocaleString()} total page views</p></div>
+ <div class="card list"><h3>Recently updated</h3>${rec.docs.map(d=>`<a href="#/a/${d.id}">${esc(d.data().title)}</a>`).join('')||'<span class="mu">No articles yet. Write the first one.</span>'}</div>
+ <div class="card list"><h3>Based on your reading</h3>${L(mine)}</div></div>`}
+
+async function search(t){app.innerHTML=sbox(t)+'<div class="card list" id="sr">Searching…</div>';const l=t.toLowerCase().trim();
+ const r=await getDocs(query(collection(db,'articles'),where('titleLower','>=',l),where('titleLower','<=',l+'\uf8ff'),orderBy('titleLower'),limit(15)));
+ q('#sr').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)} – ${esc(d.data().summary.slice(0,110))}</span></a>`).join('')||'No match. <a href="#/new">Write this article</a>.'}
+
+/* ---- read ---- */
+async function load(id){const s=await getDoc(doc(db,'articles',id));if(!s.exists())return null;const d=s.data();return{id,...d,...await unpack(d.body)}}
+function render(a){let h=`<h1>${esc(a.title)}</h1><div class="mu">${esc(a.type)}</div>`;
+ if(a.infobox?.length)h+=`<aside class="info"><h4>${esc(a.title)}</h4><dl>${a.infobox.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${fmt(v)}</dd>`).join('')}</dl></aside>`;
+ h+=`<p>${fmt(a.summary)}</p>`;
+ for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?b.x.split('\n\n').map(p=>`<p>${fmt(p)}</p>`).join(''):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${b.x.split('\n\n').map(p=>`<p>${fmt(p)}</p>`).join('')}</details>`;
+ return h}
+async function view(id){app.innerHTML='<div class="card">Loading…</div>';const a=await load(id);
+ if(!a){app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
+ track(id);document.title=a.title+' – Reitcyclopedia';
+ app.innerHTML=`<div class="card">${render(a)}<div style="clear:both"></div><hr style="border:0;border-top:1px solid var(--ln)"><div class="row mu">Revision ${a.rev} · by ${esc(a.authorName||'unknown')} ${user?`<a href="#/edit/${id}"><button class="g">Edit</button></a>`:''} ${isAdmin()?'<button class="d" id="dl">Delete</button>':''}</div></div>`;
+ if(isAdmin())q('#dl').onclick=async()=>{if(confirm('Delete this article?')){const {deleteDoc}=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");await deleteDoc(doc(db,'articles',id));location.hash='#/'}}}
+
+/* ---- editor ---- */
+let E,EID=null;
+async function editor(id){EID=id||null;let a=null;
+ if(id){a=await load(id);if(!a)return app.innerHTML='<div class="card">Article not found.</div>'}
+ E=a?{title:a.title,type:a.type,summary:a.summary,infobox:a.infobox||[],blocks:a.blocks,base:a.rev}:{title:location.hash.startsWith('#/new/')?pretty(location.hash.slice(7)):'',type:'General',summary:'',infobox:[],blocks:[{t:'h',x:''},{t:'p',x:''}]};
+ app.innerHTML=`<div class="card"><h1>${id?'Edit':'New'} article</h1>
+ ${id&&!isAdmin()?'<p class="mu">Edits are reviewed by an admin before they go live.</p>':''}
+ <div class="row"><input id="t" placeholder="Title" value="${esc(E.title)}" ${id?'disabled':''}><select id="ty" style="max-width:190px">${Object.keys(TPL).map(k=>`<option${k==E.type?' selected':''}>${k}</option>`).join('')}</select></div>
+ <p class="mu">Summary (40–500 characters, required). Use [[Article Title]] for internal links, **bold**, [text](https://url) for external links.</p>
+ <textarea id="sm" rows="3">${esc(E.summary)}</textarea>
+ <p class="mu">Infobox, one "Label: Value" per line (shown in the side bar).</p>
+ <textarea id="ib" rows="5"></textarea>
+ <h3 style="margin-top:18px">Content</h3><div id="bl"></div>
+ <div class="row"><button class="g" data-add="h">+ Heading</button><button class="g" data-add="p">+ Paragraph</button><button class="g" data-add="l">+ List</button><button class="g" data-add="c">+ Dropdown</button></div>
+ <div id="er" class="err"></div><div class="row"><button id="sv">${id&&!isAdmin()?'Submit edit for review':'Publish'}</button><span class="mu" id="sz"></span></div></div>`;
+ q('#ty').onchange=()=>{if(!q('#ib').value.trim())fillIb()};q('#ib').value=E.infobox.map(([k,v])=>k+': '+v).join('\n');if(!E.infobox.length)fillIb();
+ drawB();
+ q('#bl').oninput=e=>{const i=e.target.closest('.blk').dataset.i;E.blocks[i][e.target.dataset.f]=e.target.value};
+ q('#bl').onchange=e=>{if(e.target.dataset.f==='t')drawB()};
+ q('#bl').onclick=e=>{const a=e.target.dataset.a,i=+e.target.closest('.blk')?.dataset.i;if(!a)return;const B=E.blocks;if(a==='rm')B.splice(i,1);else{const j=a==='up'?i-1:i+1;if(j<0||j>=B.length)return;[B[i],B[j]]=[B[j],B[i]]}drawB()};
+ document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{E.blocks.push({t:b.dataset.add,x:'',h:''});drawB()});
+ q('#sv').onclick=save}
+const fillIb=()=>q('#ib').value=TPL[q('#ty').value].map(k=>k+': ').join('\n');
+function drawB(){q('#bl').innerHTML=E.blocks.map((b,i)=>`<div class="blk" data-i="${i}"><div class="row"><select data-f="t" style="max-width:190px">${[['h','Heading'],['p','Paragraph'],['l','List (one per line)'],['c','Dropdown section']].map(([v,n])=>`<option value="${v}"${b.t==v?' selected':''}>${n}</option>`).join('')}</select>${b.t=='c'?`<input data-f="h" placeholder="Dropdown title" value="${esc(b.h||'')}">`:''}<span class="sp"></span><button class="g" data-a="up">↑</button><button class="g" data-a="dn">↓</button><button class="g" data-a="rm">✕</button></div><textarea data-f="x" rows="${b.t=='h'?1:5}">${esc(b.x||'')}</textarea></div>`).join('')}
+async function save(){const er=q('#er');er.textContent='';
+ try{const title=EID?E.title:q('#t').value.trim(),type=q('#ty').value,summary=q('#sm').value.trim();
+ const infobox=q('#ib').value.split('\n').map(l=>{const i=l.indexOf(':');return i>0?[l.slice(0,i).trim(),l.slice(i+1).trim()]:null}).filter(x=>x&&x[1]);
+ const blocks=E.blocks.filter(b=>(b.x||'').trim()).map(b=>({t:b.t,x:b.x.trim(),...(b.t=='c'?{h:(b.h||'').trim()}:{})}));
+ if(title.length<3||title.length>120)throw Error('Title must be 3–120 characters.');
+ if(summary.length<40||summary.length>500)throw Error('Summary must be 40–500 characters.');
+ if(!blocks.some(b=>b.t==='h'))throw Error('Add at least one heading.');
+ if(blocks.reduce((n,b)=>n+b.x.length,0)<150)throw Error('Add at least 150 characters of body content.');
+ const body=await pack({infobox,blocks});q('#sz').textContent=Math.round(body.length/1024*10)/10+' KB compressed';
+ if(body.length>MAXB)throw Error('Article is over the 50 KB compressed limit. Shorten it.');
+ const id=EID||slug(title);if(!id)throw Error('Invalid title.');
+ const day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),cs=await getDoc(cr),c=cs.exists()?cs.data():{a:0,e:0};
+ const b=writeBatch(db),meta={title,titleLower:title.toLowerCase(),type,summary,body,authorUid:user.uid,authorName:user.displayName||'',updated:serverTimestamp()};
+ if(!EID){if((await getDoc(doc(db,'articles',id))).exists())throw Error('An article with this title already exists.');
+  if(c.a>=10)throw Error('Daily limit reached: 10 new articles per day.');
+  b.set(doc(db,'articles',id),{...meta,rev:1});b.set(cr,{a:c.a+1,e:c.e});await b.commit();location.hash='#/a/'+id}
+ else if(isAdmin()){const cur=await getDoc(doc(db,'articles',id)),o=cur.data();
+  b.set(doc(db,'articles',id,'revs',String(o.rev)),{body:o.body,by:o.authorName||''});b.update(doc(db,'articles',id),{summary,type,body,rev:o.rev+1,updated:serverTimestamp()});await b.commit();location.hash='#/a/'+id}
+ else{if(c.e>=20)throw Error('Daily limit reached: 20 edits per day.');
+  b.set(doc(collection(db,'edits')),{...meta,slug:id,baseRev:E.base,status:'pending'});b.set(cr,{a:c.a,e:c.e+1});await b.commit();
+  app.innerHTML='<div class="card"><h1>Edit submitted</h1><p>An admin will review it soon.</p><a href="#/a/'+id+'">Back to article</a></div>'}
+ }catch(e){er.textContent=e.code==='permission-denied'?'Not allowed. You may be over a daily limit or need a verified Google account.':e.message}}
+
+/* ---- admin review (line diff against current revision) ---- */
+const lines=o=>[`Type: ${o.type}`,`Summary: ${o.summary}`,...(o.infobox||[]).map(([k,v])=>`[info] ${k}: ${v}`),...o.blocks.flatMap(b=>[`[${b.t}${b.h?' '+b.h:''}]`,...b.x.split('\n')])];
+function diff(a,b){const A=new Set(a),B=new Set(b);return [...a.filter(x=>!B.has(x)).map(x=>`<span class="del">− ${esc(x)}</span>`),...b.filter(x=>!A.has(x)).map(x=>`<span class="add">+ ${esc(x)}</span>`)].join('\n')||'No visible changes.'}
+async function review(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
+ app.innerHTML='<div class="card"><h1>Edit review log</h1><div id="rv">Loading…</div></div>';
+ const r=await getDocs(query(collection(db,'edits'),where('status','==','pending'),limit(20)));
+ if(r.empty)return q('#rv').innerHTML='<p class="mu">No pending edits.</p>';
+ q('#rv').innerHTML='';
+ for(const d of r.docs){const e=d.data(),cur=await load(e.slug),n=await unpack(e.body),box=document.createElement('div');box.className='blk';
+  const stale=cur&&cur.rev!==e.baseRev;
+  box.innerHTML=`<b><a href="#/a/${e.slug}">${esc(e.title)}</a></b> <span class="mu">by ${esc(e.authorName)} · based on rev ${e.baseRev}</span>${stale?`<div class="err">Stale: the article is now at rev ${cur.rev}. The diff below compares against the current version. Approving overwrites newer changes.</div>`:''}<pre class="df">${cur?diff(lines(cur),lines({...e,...n})):'Article missing'}</pre><div class="row"><button class="a">Approve</button><button class="d x">Reject</button></div>`;
+  q('#rv').append(box);
+  box.querySelector('.a').onclick=async()=>{const b=writeBatch(db);b.set(doc(db,'articles',e.slug,'revs',String(cur.rev)),{body:cur.body,by:cur.authorName||''});b.update(doc(db,'articles',e.slug),{summary:e.summary,type:e.type,body:e.body,rev:cur.rev+1,updated:serverTimestamp()});b.delete(d.ref);await b.commit();box.remove()};
+  box.querySelector('.x').onclick=async()=>{await writeBatch(db).delete(d.ref).commit();box.remove()}}}
+route();
+</script></body></html>
