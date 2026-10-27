@@ -96,7 +96,7 @@ body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}main{
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,GoogleAuthProvider,GithubAuthProvider,signInWithPopup,signOut,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendEmailVerification,sendPasswordResetEmail,sendSignInLinkToEmail,isSignInWithEmailLink,signInWithEmailLink} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp,getCountFromServer} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp,getCountFromServer,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
 const firebaseConfig={apiKey:"AIzaSyDrf2lcyMJIFO9H3xQQiI0mz8Y-c_Xgg_o",authDomain:"reitcyclopedia.firebaseapp.com",projectId:"reitcyclopedia",storageBucket:"reitcyclopedia.firebasestorage.app",messagingSenderId:"361636082909",appId:"1:361636082909:web:78402de7cb5ff2052e9734"};
@@ -171,7 +171,7 @@ addEventListener('visibilitychange',()=>document.hidden&&flush());addEventListen
 /* ---- auth ---- */
 function renderNav(){const n=q('#nav');
  if(!user){n.innerHTML='<button id="si">Sign in</button>';q('#si').onclick=openAuth;return}
- const nm=esc((user.displayName||user.email).slice(0,18)),it=`<a href="#/new">New article</a>${isAdmin()?'<a href="#/review">Review log</a>':''}<a href="#/help">Help</a><a href="#" id="so">Sign out</a>`;
+ const nm=esc((user.displayName||user.email).slice(0,18)),it=`<a href="#/new">New article</a>${isAdmin()?'<a href="#/review">Review log</a><a href="#/rebuild">Rebuild index</a>':''}<a href="#/help">Help</a><a href="#" id="so">Sign out</a>`;
  n.innerHTML=FANCY?`<div class="menu"><button class="g" id="mb" aria-haspopup="true">${nm} ▾</button><div class="mp" id="mn" hidden>${it}</div></div>`:`<span class="mu">${nm}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`;
  if(FANCY){const m=q('#mn');q('#mb').onclick=e=>{e.stopPropagation();m.hidden=!m.hidden};m.onclick=()=>m.hidden=true}
  q('#so').onclick=e=>{e.preventDefault();signOut(auth)}}
@@ -207,36 +207,76 @@ function renderVb(){const b=q('#vb');if(!user||user.emailVerified){b.hidden=true
 
 /* ---- router ---- */
 addEventListener('hashchange',route);
-async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;document.title='Reitcyclopedia';scrollTo({top:0,behavior:'instant'});
- try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
+async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;await loadIdx();document.title='Reitcyclopedia';scrollTo({top:0,behavior:'instant'});
+ try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='rebuild')await rebuild();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
  catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
 const need=f=>user&&user.emailVerified?f():app.innerHTML=`<div class="card">${user?'Verify your email address first (see the yellow bar above).':'Sign in to continue.'}</div>`;
-const sbox=v=>`<form class="search row" onsubmit="location.hash='#/s/'+encodeURIComponent(this.q.value);return false"><input name="q" placeholder="Search articles by title" value="${esc(v||'')}"><button>Search</button></form>`;
+const sbox=v=>`<form class="search row" id="sf"><input name="q" autocomplete="off" placeholder="Search articles (live)" value="${esc(v||'')}"><button>Search</button></form><div class="card list" id="sr" hidden></div>`;
+function wireSearch(){const f=q('#sf'),i=f.q,o=q('#sr');const go=()=>{const v=i.value.trim();if(!v){o.hidden=true;return}o.hidden=false;o.innerHTML=srch(v).map(row).join('')||`No match. <a href="#/new/${slug(v)}">Write this article</a>.`};i.oninput=go;f.onsubmit=e=>{e.preventDefault();location.hash='#/s/'+encodeURIComponent(i.value);return false};IDXCB=go;go()}
 
-/* ---- home ---- */
-async function home(){app.innerHTML=`<div class="hero">${MARK}<h1 class="wm">Reitcyclopedia</h1><p class="tag" id="cn">Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;
- const [st,rec,cn]=await Promise.all([Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(8))),getCountFromServer(collection(db,'articles')).catch(()=>null)]);
- const tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});
- const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8),mine=Object.entries(hist).sort((a,b)=>b[1]-a[1]).slice(0,5);
- const L=a=>a.map(([s,n])=>`<a href="#/a/${s}">${esc(pretty(s))} <span class="mu">${n?'('+n+')':''}</span></a>`).join('')||'<span class="mu">Nothing yet.</span>';
- if(cn)q('#cn').textContent=cn.data().count.toLocaleString()+' articles and growing. Free to read, free to write.';
- q('#hm').innerHTML=`<div class="grid"><div class="card list"><h3>Trending</h3>${L(top)}<p class="mu">${views.toLocaleString()} total page views</p></div>
- <div class="card list"><h3>Recently updated</h3>${rec.docs.map(d=>`<a href="#/a/${d.id}">${esc(d.data().title)}</a>`).join('')||'<span class="mu">No articles yet.</span>'}</div>
+/* ---- search index: ONE compressed doc (meta/index), cached locally, drives search/categories/home/browse/random ---- */
+const IDXD=doc(db,'meta','index');let IDX={rev:0,n:0,e:[]},BYS={},IDXP=null,IDXCB=null;
+const normQ=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+function setIdx(rev,n,rows){IDX={rev,n,e:rows.map(r=>({i:r[0],t:r[1],y:r[2],s:r[3],u:r[4],k:normQ(r[1]),ks:normQ(r[3])}))};BYS={};IDX.e.forEach(x=>BYS[slug(x.t)]=x.i);IDX.e.forEach(x=>BYS[x.i]=x.i)}
+const rowsOf=()=>IDX.e.map(x=>[x.i,x.t,x.y,x.s,x.u]);
+const saveIdxCache=()=>idb('put','idx',{rev:IDX.rev,n:IDX.n,rows:rowsOf(),at:Date.now()});
+function loadIdx(){if(IDXP)return IDXP;
+ return IDXP=(async()=>{const c=await idb('get','idx');let fresh=false;
+  if(c&&c.rows){setIdx(c.rev,c.n,c.rows);fresh=Date.now()-c.at<300000}
+  if(fresh)return;
+  const run=async()=>{try{const s=await getDoc(IDXD);if(s.exists()){const d=s.data();if(!c||d.rev!==IDX.rev||!c.rows){setIdx(d.rev,d.n,await unpack(d.z))}}else if(!c)setIdx(0,0,[]);await saveIdxCache();IDXCB&&IDXCB()}catch(e){}};
+  if(c&&c.rows)run();else await run()})()}
+function srch(t,lim=15){const n=normQ(t);if(!n)return[];const w=n.split(' '),r=[];
+ for(const x of IDX.e){const k=x.k;let sc=0;if(k===n)sc=100;else if(k.startsWith(n))sc=80;else if(k.includes(' '+n))sc=60;else if(w.every(q=>k.includes(q)))sc=45;else if(k.includes(n))sc=40;else if(w.every(q=>x.ks.includes(q)||k.includes(q)))sc=15;if(sc)r.push([sc-k.length/100,x])}
+ return r.sort((a,b)=>b[0]-a[0]).slice(0,lim).map(a=>a[1])}
+const row=x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.y)} – ${esc(x.s)}</span></a>`;
+const titleOf=id=>(IDX.e.find(x=>x.i===id)||{}).t;
+/* One transaction writes article + index + daily counter together, so the index can never drift. Rules enforce the same. */
+async function txArticle(id,op,meta){const ar=doc(db,'articles',id),day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),lim=isAdmin()?{a:50,e:75}:{a:25,e:15};let out;
+ await runTransaction(db,async tx=>{
+  const is=await tx.get(IDXD),as=await tx.get(ar),cs=op==='delete'?null:await tx.get(cr);
+  const d=is.exists()?is.data():{rev:0,n:0},list=is.exists()?await unpack(d.z):[],cur=as.exists()?as.data():null;
+  if(op==='create'&&cur)throw Error('An article with this title already exists.');
+  if(op!=='create'&&!cur)throw Error('Article no longer exists.');
+  const rev=d.rev+1,rows=list.filter(x=>x[0]!==id);let n=d.n;
+  if(op==='create')n++;if(op==='delete')n=Math.max(0,n-1);
+  if(op!=='delete')rows.push([id,meta.title,meta.type,meta.summary.slice(0,110),Date.now()]);
+  const z=await pack(rows);if(z.length>900000)throw Error('Search index is full. Ask an admin to shard it.');
+  const c=cs&&cs.exists()?cs.data():{a:0,e:0};
+  tx.set(IDXD,{rev,n,z,last:id});
+  if(op==='delete')tx.delete(ar);
+  else if(op==='create'){if(c.a>=lim.a)throw Error('Daily limit reached: '+lim.a+' new articles per day.');tx.set(ar,{...meta,rev:1,idxRev:rev,updated:serverTimestamp()});tx.set(cr,{a:c.a+1,e:c.e})}
+  else{if(c.e>=lim.e)throw Error('Daily limit reached: '+lim.e+' edits per day.');
+   tx.set(doc(db,'articles',id,'revs',String(cur.rev)),{body:cur.body,by:cur.authorName||''});
+   tx.update(ar,{title:meta.title,titleLower:meta.title.toLowerCase(),summary:meta.summary,type:meta.type,body:meta.body,rev:cur.rev+1,idxRev:rev,updated:serverTimestamp()});tx.set(cr,{a:c.a,e:c.e+1});
+   if(meta.drop)tx.delete(meta.drop)}
+  out={rev,n,rows}});
+ setIdx(out.rev,out.n,out.rows);saveIdxCache()}
+async function rebuild(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
+ app.innerHTML='<div class="card"><h1>Rebuild search index</h1><p class="mu">Reads every article once and rewrites the index. Use it once to migrate existing articles, or to repair the index after manual database changes.</p><button id="rb">Rebuild now</button> <span id="rbs" class="mu"></span></div>';
+ q('#rb').onclick=async()=>{try{q('#rbs').textContent='Working…';const r=await getDocs(collection(db,'articles')),rows=r.docs.map(d=>{const x=d.data();return[d.id,x.title,x.type,(x.summary||'').slice(0,110),x.updated?.toMillis?.()||0]}),s=await getDoc(IDXD),rev=(s.exists()?s.data().rev:0)+1;
+  await setDoc(IDXD,{rev,n:rows.length,z:await pack(rows),last:'_rebuild'});setIdx(rev,rows.length,rows);await saveIdxCache();q('#rbs').textContent='Done: '+rows.length+' articles indexed.'}catch(e){q('#rbs').textContent='Failed: '+e.message}}}
+/* ---- home (0 reads from the index; trending uses a 30-minute local cache of 3 tiny stat docs) ---- */
+async function getStats(){const c=await idb('get','st');if(c&&Date.now()-c.at<1800000)return c;const st=await Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});const o={tot,views,at:Date.now()};await idb('put','st',o);return o}
+async function home(){await loadIdx();app.innerHTML=`<div class="hero">${MARK}<h1 class="wm">Reitcyclopedia</h1><p class="tag" id="cn">${(IDX.n||IDX.e.length).toLocaleString()} articles and growing. Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;wireSearch();
+ const rec=[...IDX.e].sort((a,b)=>b.u-a.u).slice(0,8),mine=Object.entries(hist).filter(([s])=>BYS[s]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const L=a=>a.map(([s,n])=>`<a href="#/a/${s}">${esc(titleOf(s)||pretty(s))} <span class="mu">${n?'('+n+')':''}</span></a>`).join('')||'<span class="mu">Nothing yet.</span>';
+ q('#hm').innerHTML=`${isAdmin()&&!IDX.e.length?'<div class="card err">The search index is empty. <a href="#/rebuild">Build it now</a>.</div>':''}<div class="grid"><div class="card list"><h3>Trending</h3><div id="tr"><span class="mu">Loading…</span></div></div>
+ <div class="card list"><h3>Recently updated</h3>${rec.map(x=>`<a href="#/a/${x.i}">${esc(x.t)}</a>`).join('')||'<span class="mu">No articles yet.</span>'}</div>
  <div class="card list"><h3>Based on your reading</h3>${L(mine)}<p class="mu">Kept only on this device.</p></div>
- <div class="card"><h3>Write for Reitcyclopedia</h3><p class="mu">Anyone with a Google account can publish up to 10 articles a day on any subject. Stuck? The editor can generate a prompt for an AI chatbot and fill the article in for you to review.</p><a href="#/new"><button>Start an article</button></a> <a href="#/help"><button class="g">Writing guide</button></a></div></div>`}
-async function rnd(){const c='abcdefghijklmnopqrstuvwxyz0123456789',k=c[Math.floor(Math.random()*c.length)],A=collection(db,'articles');let r=await getDocs(query(A,where('titleLower','>=',k),orderBy('titleLower'),limit(1)));if(r.empty)r=await getDocs(query(A,orderBy('titleLower'),limit(1)));if(r.empty)return home();location.replace('#/a/'+r.docs[0].id)}
-const chips=()=>`<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}</div>`;
-async function browse(){app.innerHTML=`<div class="card"><h1>Browse</h1>${chips()}<h3>Latest articles</h3><div class="list" id="tl">Loading…</div></div>`;const r=await getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(30)));q('#tl').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)}</span></a>`).join('')||'Nothing here yet.'}
-async function byType(t){if(!TPL[t])return browse();app.innerHTML=`<div class="card"><h1>${esc(t)} articles</h1>${chips()}<div class="list" id="tl">Loading…</div></div>`;const r=await getDocs(query(collection(db,'articles'),where('type','==',t),limit(60)));q('#tl').innerHTML=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.titleLower<b.titleLower?-1:1).map(a=>`<a href="#/a/${a.id}"><b>${esc(a.title)}</b> <span class="mu">${esc(a.summary.slice(0,100))}</span></a>`).join('')||'No articles of this type yet.'}
+ <div class="card"><h3>Write for Reitcyclopedia</h3><p class="mu">Anyone with a verified account can publish up to 25 articles and make 15 edits a day on any subject. Stuck? The editor can generate a prompt for an AI chatbot and fill the article in for you to review.</p><a href="#/new"><button>Start an article</button></a> <a href="#/help"><button class="g">Writing guide</button></a></div></div>`;
+ try{const s=await getStats(),top=Object.entries(s.tot).filter(([k])=>BYS[k]).sort((a,b)=>b[1]-a[1]).slice(0,8);if(q('#tr'))q('#tr').innerHTML=L(top)+`<p class="mu">${s.views.toLocaleString()} total page views</p>`}catch(e){if(q('#tr'))q('#tr').innerHTML='<span class="mu">Unavailable.</span>'}}
+async function rnd(){await loadIdx();if(!IDX.e.length)return home();location.replace('#/a/'+IDX.e[Math.floor(Math.random()*IDX.e.length)].i)}
+const chips=()=>`<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k} <span class="mu">${IDX.e.filter(x=>x.y===k).length}</span></a>`).join('')}</div>`;
+async function browse(){await loadIdx();app.innerHTML=`<div class="card"><h1>Browse</h1>${chips()}<h3>Latest articles</h3><div class="list">${[...IDX.e].sort((a,b)=>b.u-a.u).slice(0,50).map(x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.y)}</span></a>`).join('')||'Nothing here yet.'}</div></div>`}
+async function byType(t){if(!TPL[t])return browse();await loadIdx();app.innerHTML=`<div class="card"><h1>${esc(t)} articles</h1>${chips()}<div class="list">${IDX.e.filter(x=>x.y===t).sort((a,b)=>a.k<b.k?-1:1).map(x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.s.slice(0,100))}</span></a>`).join('')||'No articles of this type yet.'}</div></div>`}
 function help(){const ex=x=>`<pre class="cb">${esc(x)}</pre>`;app.innerHTML=`<div class="card"><h1>Writing guide</h1><p>Every article needs a title, a type, a summary of 40 to 500 characters, at least one heading, and at least 150 characters of content. Articles are limited to 50 KB compressed.</p>
 <h2>Formatting</h2>${ex('**bold**  *italic*  ~~strike~~  ==highlight==  `code`\n[[Another Article]]  [link text](https://example.com)')}
 <p>Paragraphs and dropdown sections also accept these on their own lines:</p>${ex('### Small heading\n- bullet\n1. numbered\n> quote\n---\n| Name | Year |\n|------|------|\n| Moon | 1969 |\n\n```\ncode block\n```')}
 <h2>Infobox</h2><p>Add one "Label: Value" per line. Choosing a type pre-fills suggested labels.</p>
 <h2>AI article prompt</h2><p>In the editor, click <b>Copy prompt</b>, paste it into any chatbot, tell it the subject and what to cover, then copy its reply and click <b>Paste response</b>. You get a preview to approve before anything is filled in. Always check the facts.</p>
 <h2>Limits</h2><p>25 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
-async function search(t){app.innerHTML=sbox(t)+'<div class="card list" id="sr">Searching…</div>';const l=t.toLowerCase().trim();
- const r=await getDocs(query(collection(db,'articles'),where('titleLower','>=',l),where('titleLower','<=',l+'\uf8ff'),orderBy('titleLower'),limit(15)));
- q('#sr').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)} – ${esc(d.data().summary.slice(0,110))}</span></a>`).join('')||'No match. <a href="#/new">Write this article</a>.'}
+async function search(t){await loadIdx();app.innerHTML=sbox(t);wireSearch()}
 
 /* ---- read ---- */
 async function load(id){const s=await getDoc(doc(db,'articles',id));if(!s.exists())return null;const d=s.data();return{id,...d,...await unpack(d.body)}}
@@ -245,21 +285,21 @@ function render(a){let h=`<h1>${esc(a.title)}</h1><div class="mu">${esc(a.type)}
  h+=`<p>${fmt(a.summary)}</p>`;
  for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?md(b.x):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${md(b.x)}</details>`;
  return h}
-async function view(id){app.innerHTML='<div class="card">Loading…</div>';const a=await load(id);
+async function view(id){app.innerHTML='<div class="card">Loading…</div>';const al=BYS[id];if(al&&al!==id)return location.replace('#/a/'+al);const a=await load(id);
  if(!a){app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
  track(id);document.title=a.title+' – Reitcyclopedia';
  app.innerHTML=`<div class="card">${render(a)}<div style="clear:both"></div><hr style="border:0;border-top:1px solid var(--ln)"><div class="row mu">Revision ${a.rev} · by ${esc(a.authorName||'unknown')} ${user?`<a href="#/edit/${id}"><button class="g">Edit</button></a>`:''} ${isAdmin()?'<button class="d" id="dl">Delete</button>':''}</div></div>`;
- if(isAdmin())q('#dl').onclick=async()=>{if(await uiConfirm('Delete this article?')){const {deleteDoc}=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");await deleteDoc(doc(db,'articles',id));location.hash='#/'}}}
+ if(isAdmin())q('#dl').onclick=async()=>{if(await uiConfirm('Delete this article?')){try{await txArticle(id,'delete');location.hash='#/'}catch(e){uiAlert(e.message)}}}}
 
 /* ---- editor ---- */
 let E,EID=null;const CPI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 async function editor(id){EID=id||null;let a=null;
  if(id){a=await load(id);if(!a)return app.innerHTML='<div class="card">Article not found.</div>'}
  E=a?{title:a.title,type:a.type,summary:a.summary,infobox:a.infobox||[],blocks:a.blocks,base:a.rev}:{title:location.hash.startsWith('#/new/')?pretty(location.hash.slice(7)):'',type:'General',summary:'',infobox:[],blocks:[{t:'h',x:''},{t:'p',x:''}]};
- if(PRE){if(id)delete PRE.title;E={...E,...PRE};PRE=null}
+ if(PRE){E={...E,...PRE};PRE=null}
  app.innerHTML=`<div class="card"><h1>${id?'Edit':'New'} article</h1><div class="ai"><div><b>AI article prompt</b><div class="mu">Copy the prompt, paste it into any chatbot, answer its questions, then paste its reply here to review.</div></div><button class="g" id="cp" title="Copy AI prompt">${CPI} Copy prompt</button><button class="g" id="ps">Paste response</button></div>
  ${id&&!isAdmin()?'<p class="mu">Edits are reviewed by an admin before they go live.</p>':''}
- <div class="row"><input id="t" placeholder="Title" value="${esc(E.title)}" ${id?'disabled':''}><select id="ty" style="max-width:190px">${Object.keys(TPL).map(k=>`<option${k==E.type?' selected':''}>${k}</option>`).join('')}</select></div>
+ <div class="row"><input id="t" placeholder="Title" value="${esc(E.title)}" maxlength="120"><select id="ty" style="max-width:190px">${Object.keys(TPL).map(k=>`<option${k==E.type?' selected':''}>${k}</option>`).join('')}</select></div>
  <p class="mu">Summary (40–500 characters, required). Use [[Article Title]] for internal links, **bold**, [text](https://url) for external links.</p>
  <textarea id="sm" rows="3">${esc(E.summary)}</textarea>
  <p class="mu">Infobox, one "Label: Value" per line (shown in the side bar).</p>
@@ -277,7 +317,7 @@ async function editor(id){EID=id||null;let a=null;
 const fillIb=()=>q('#ib').value=TPL[q('#ty').value].map(k=>k+': ').join('\n');
 function drawB(){q('#bl').innerHTML=E.blocks.map((b,i)=>`<div class="blk" data-i="${i}"><div class="row"><select data-f="t" style="max-width:190px">${[['h','Heading'],['p','Paragraph'],['l','List (one per line)'],['c','Dropdown section']].map(([v,n])=>`<option value="${v}"${b.t==v?' selected':''}>${n}</option>`).join('')}</select>${b.t=='c'?`<input data-f="h" placeholder="Dropdown title" value="${esc(b.h||'')}">`:''}<span class="sp"></span><button class="g" data-a="up">↑</button><button class="g" data-a="dn">↓</button><button class="g" data-a="rm">✕</button></div><textarea data-f="x" rows="${b.t=='h'?1:5}">${esc(b.x||'')}</textarea></div>`).join('')}
 async function save(){const er=q('#er');er.textContent='';
- try{const title=EID?E.title:q('#t').value.trim(),type=q('#ty').value,summary=q('#sm').value.trim();
+ try{const title=q('#t').value.trim(),type=q('#ty').value,summary=q('#sm').value.trim();
  const infobox=q('#ib').value.split('\n').map(l=>{const i=l.indexOf(':');return i>0?[l.slice(0,i).trim(),l.slice(i+1).trim()]:null}).filter(x=>x&&x[1]);
  const blocks=E.blocks.filter(b=>(b.x||'').trim()).map(b=>({t:b.t,x:b.x.trim(),...(b.t=='c'?{h:(b.h||'').trim()}:{})}));
  if(title.length<3||title.length>120)throw Error('Title must be 3–120 characters.');
@@ -287,20 +327,18 @@ async function save(){const er=q('#er');er.textContent='';
  const body=await pack({infobox,blocks});q('#sz').textContent=Math.round(body.length/1024*10)/10+' KB compressed';
  if(body.length>MAXB)throw Error('Article is over the 50 KB compressed limit. Shorten it.');
  const id=EID||slug(title);if(!id)throw Error('Invalid title.');
- const day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),cs=await getDoc(cr),c=cs.exists()?cs.data():{a:0,e:0};
- const b=writeBatch(db),meta={title,titleLower:title.toLowerCase(),type,summary,body,authorUid:user.uid,authorName:user.displayName||'',updated:serverTimestamp()};
- if(!EID){if((await getDoc(doc(db,'articles',id))).exists())throw Error('An article with this title already exists.');
-  if(c.a>=10)throw Error('Daily limit reached: 25 new articles per day.');
-  b.set(doc(db,'articles',id),{...meta,rev:1});b.set(cr,{a:c.a+1,e:c.e});await b.commit();location.hash='#/a/'+id}
- else if(isAdmin()){const cur=await getDoc(doc(db,'articles',id)),o=cur.data();
-  b.set(doc(db,'articles',id,'revs',String(o.rev)),{body:o.body,by:o.authorName||''});b.update(doc(db,'articles',id),{summary,type,body,rev:o.rev+1,updated:serverTimestamp()});await b.commit();location.hash='#/a/'+id}
- else{if(c.e>=20)throw Error('Daily limit reached: 20 edits per day.');
-  b.set(doc(collection(db,'edits')),{...meta,slug:id,baseRev:E.base,status:'pending'});b.set(cr,{a:c.a,e:c.e+1});await b.commit();
+ await loadIdx();const own=BYS[slug(title)];if(own&&own!==id)throw Error('Another article already uses that name.');
+ const meta={title,titleLower:title.toLowerCase(),type,summary,body,authorUid:user.uid,authorName:user.displayName||''};
+ if(!EID){if(BYS[id])throw Error('An article with this title already exists.');await txArticle(id,'create',meta);location.hash='#/a/'+id}
+ else if(isAdmin()){await txArticle(id,'update',meta);location.hash='#/a/'+(slug(title)||id)}
+ else{const day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),cs=await getDoc(cr),c=cs.exists()?cs.data():{a:0,e:0};
+  if(c.e>=15)throw Error('Daily limit reached: 15 edits per day.');
+  const b=writeBatch(db);b.set(doc(collection(db,'edits')),{...meta,updated:serverTimestamp(),slug:id,baseRev:E.base,status:'pending'});b.set(cr,{a:c.a,e:c.e+1});await b.commit();
   app.innerHTML='<div class="card"><h1>Edit submitted</h1><p>An admin will review it soon.</p><a href="#/a/'+id+'">Back to article</a></div>'}
  }catch(e){er.textContent=e.code==='permission-denied'?'Not allowed. You may be over a daily limit or need a verified Google account.':e.message}}
 
 /* ---- admin review (line diff against current revision) ---- */
-const lines=o=>[`Type: ${o.type}`,`Summary: ${o.summary}`,...(o.infobox||[]).map(([k,v])=>`[info] ${k}: ${v}`),...o.blocks.flatMap(b=>[`[${b.t}${b.h?' '+b.h:''}]`,...b.x.split('\n')])];
+const lines=o=>[`Title: ${o.title}`,`Type: ${o.type}`,`Summary: ${o.summary}`,...(o.infobox||[]).map(([k,v])=>`[info] ${k}: ${v}`),...o.blocks.flatMap(b=>[`[${b.t}${b.h?' '+b.h:''}]`,...b.x.split('\n')])];
 function diff(a,b){const A=new Set(a),B=new Set(b);return [...a.filter(x=>!B.has(x)).map(x=>`<span class="del">− ${esc(x)}</span>`),...b.filter(x=>!A.has(x)).map(x=>`<span class="add">+ ${esc(x)}</span>`)].join('\n')||'No visible changes.'}
 async function review(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
  app.innerHTML='<div class="card"><h1>Edit review log</h1><div id="rv">Loading…</div></div>';
@@ -311,7 +349,7 @@ async function review(){if(!isAdmin())return app.innerHTML='<div class="card">Ad
   const stale=cur&&cur.rev!==e.baseRev;
   box.innerHTML=`<b><a href="#/a/${e.slug}">${esc(e.title)}</a></b> <span class="mu">by ${esc(e.authorName)} · based on rev ${e.baseRev}</span>${stale?`<div class="err">Stale: the article is now at rev ${cur.rev}. The diff below compares against the current version. Approving overwrites newer changes.</div>`:''}<pre class="df">${cur?diff(lines(cur),lines({...e,...n})):'Article missing'}</pre><div class="row"><button class="a">Approve</button><button class="d x">Reject</button></div>`;
   q('#rv').append(box);
-  box.querySelector('.a').onclick=async()=>{const b=writeBatch(db);b.set(doc(db,'articles',e.slug,'revs',String(cur.rev)),{body:cur.body,by:cur.authorName||''});b.update(doc(db,'articles',e.slug),{summary:e.summary,type:e.type,body:e.body,rev:cur.rev+1,updated:serverTimestamp()});b.delete(d.ref);await b.commit();box.remove()};
+  box.querySelector('.a').onclick=async()=>{try{await txArticle(e.slug,'update',{title:e.title,type:e.type,summary:e.summary,body:e.body,drop:d.ref});box.remove()}catch(x){uiAlert(x.message)}};
   box.querySelector('.x').onclick=async()=>{await writeBatch(db).delete(d.ref).commit();box.remove()}}}
 route();
 </script></body></html>
