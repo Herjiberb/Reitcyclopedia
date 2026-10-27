@@ -32,13 +32,47 @@ details{border:1px solid var(--ln);border-radius:12px;padding:8px 14px;margin:10
 pre.df{background:var(--bg);border-radius:12px;padding:10px;white-space:pre-wrap;font-size:14px;max-height:260px;overflow:auto}
 .add{color:#067647}.del{color:#d92d20}
 @media(max-width:640px){.info{float:none;width:100%;margin:0 0 14px}.card{padding:18px}}
+
+code{background:#eef2f8;padding:1px 6px;border-radius:6px;font-size:.9em}
+pre.cb{background:#f1f4f9;border-radius:12px;padding:12px;overflow:auto;font-size:14px;white-space:pre}
+blockquote{margin:12px 0;padding:6px 16px;border-left:4px solid var(--lk);background:var(--lkb);border-radius:0 12px 12px 0}
+mark{background:#fff0a8;border-radius:4px;padding:0 3px}hr{border:0;border-top:1px solid var(--ln)}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--ln);padding:6px 10px;text-align:left}.tw{overflow:auto;margin:12px 0}
+main{min-height:62vh}footer{border-top:1px solid var(--ln);margin-top:30px;background:var(--card)}footer .bar{flex-wrap:wrap;gap:16px;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 22px}.chip{background:var(--card);border:1px solid var(--ln);border-radius:999px;padding:4px 16px;font-size:15px}
+.ai{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--lkb);border-radius:14px;padding:12px 16px;margin:10px 0 14px}.ai>div{flex:1;min-width:220px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:50;padding:16px}
+.md{background:#fff;border-radius:16px;padding:20px 22px;max-width:440px;width:100%;max-height:86vh;overflow:auto}.md.w{max-width:780px}.md h3{margin-top:0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1e2633;color:#fff;padding:10px 20px;border-radius:999px;z-index:60;font-size:15px}
+.menu{position:relative}.mp{position:absolute;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--ln);border-radius:14px;min-width:190px;padding:6px;z-index:20}
+.mp[hidden]{display:none}.mp a{display:block;padding:8px 12px;border-radius:10px;color:var(--tx)}.mp a:hover{background:var(--lkb);text-decoration:none}
+#pg{position:fixed;top:0;left:0;height:3px;background:var(--lk);z-index:30;width:0}
+.pv{max-height:50vh;overflow:auto;border:1px solid var(--ln);border-radius:12px;padding:6px 18px}
+html.fancy{scroll-behavior:smooth;scroll-padding-top:70px}
+.fancy body{background:linear-gradient(180deg,#fcfcfd 0,#eceef2 480px,#e4e7ec);background-attachment:fixed;overscroll-behavior-y:none}
+.fancy header{background:rgba(255,255,255,.78);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 8px 24px -18px rgba(30,40,60,.35)}
+.fancy .card{background:linear-gradient(160deg,#fff,#f3f5f8);border-radius:24px;border-color:#e0e4ea;box-shadow:0 1px 2px rgba(30,40,60,.05),0 16px 36px -20px rgba(30,40,60,.3);transition:transform .25s,box-shadow .25s}
+.fancy .grid .card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(30,40,60,.06),0 24px 44px -20px rgba(30,40,60,.38)}
+.fancy button{background:linear-gradient(180deg,#3282ea,#1259c9);box-shadow:0 6px 14px -8px rgba(21,101,216,.8);transition:transform .15s,filter .15s}
+.fancy button:hover{filter:brightness(1.07);transform:translateY(-1px)}.fancy button.g{background:linear-gradient(180deg,#fff,#edf0f5);color:var(--lk);box-shadow:inset 0 0 0 1px var(--ln)}
+.fancy button.d{background:linear-gradient(180deg,#ee4a3d,#c8281b)}
+.fancy input,.fancy select,.fancy textarea{border-radius:14px;background:linear-gradient(180deg,#fafbfc,#fff);transition:box-shadow .2s}
+.fancy .info,.fancy .chip,.fancy .blk,.fancy details,.fancy .pv{background:linear-gradient(180deg,#fff,#f1f3f7);border-radius:16px}
+.fancy .ai{background:linear-gradient(135deg,#e9f1fe,#f4f6fa)}
+.fancy .mp,.fancy .md{border-radius:20px;background:linear-gradient(180deg,#fff,#f4f6f9);box-shadow:0 24px 60px -18px rgba(20,30,50,.45)}
+.fancy .mo{backdrop-filter:blur(7px);background:rgba(28,36,50,.36);animation:fi .18s}.fancy .md,.fancy .mp:not([hidden]){animation:pop .22s cubic-bezier(.2,.9,.3,1.2)}
+.fancy ::-webkit-scrollbar{width:11px;height:11px}.fancy ::-webkit-scrollbar-thumb{background:#c5ccd8;border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+.fancy .chip:hover{box-shadow:0 6px 14px -8px rgba(30,40,60,.4);text-decoration:none}
+@keyframes fi{from{opacity:0}}@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@media(prefers-reduced-motion:reduce){.fancy *{animation:none!important;transition:none!important}html.fancy{scroll-behavior:auto}}
 </style></head><body>
 <header><div class="bar"><a class="logo" href="#/">Reitcyclopedia</a><span class="sp"></span><span id="nav"></span></div></header>
-<main id="app"></main>
+<div id="pg"></div><main id="app"></main>
+<footer><div class="bar"><b style="color:var(--lk)">Reitcyclopedia</b><span class="mu">Free to read, free to write.</span><span class="sp"></span><a href="#/">Home</a><a href="#/browse">Browse</a><a href="#/random">Random</a><a href="#/help">Help</a><button class="g" id="fx">Fancy UI: Off</button></div></footer>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp,getCountFromServer} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
 const firebaseConfig={apiKey:"AIzaSyDrf2lcyMJIFO9H3xQQiI0mz8Y-c_Xgg_o",authDomain:"reitcyclopedia.firebaseapp.com",projectId:"reitcyclopedia",storageBucket:"reitcyclopedia.firebasestorage.app",messagingSenderId:"361636082909",appId:"1:361636082909:web:78402de7cb5ff2052e9734"};
@@ -48,9 +82,54 @@ const q=s=>document.querySelector(s), app=q('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const slug=t=>t.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const pretty=s=>s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-const fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/==(.+?)==/g,'<mark>$1</mark>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
 const isAdmin=()=>user&&user.emailVerified&&ADMINS.includes(user.email);
-let user=null;
+let user=null,PRE=null;
+/* ---- settings (IndexedDB), UI mode, modals ---- */
+const idb=(m,k,v)=>new Promise(res=>{try{const r=indexedDB.open('rc',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onerror=()=>res();r.onsuccess=()=>{const t=r.result.transaction('s',m==='get'?'readonly':'readwrite'),o=t.objectStore('s'),x=m==='get'?o.get(k):o.put(v,k);x.onsuccess=()=>res(x.result);x.onerror=()=>res()}}catch(e){res()}});
+let FANCY=false;
+const applyFx=()=>{document.documentElement.classList.toggle('fancy',FANCY);q('#fx').textContent='Fancy UI: '+(FANCY?'On':'Off')};
+const boot=idb('get','fancy').then(v=>{FANCY=v===true;applyFx();return v});
+q('#fx').onclick=()=>{FANCY=!FANCY;applyFx();renderNav();idb('put','fancy',FANCY)};
+async function bench(){const t=performance.now();let x=0;for(let i=0;i<2e6;i++)x+=Math.sqrt(i);const cpu=performance.now()-t;
+ const fps=await new Promise(r=>{let n=0;const s=performance.now(),f=t=>{n++;t-s<500?requestAnimationFrame(f):r(n*1000/(t-s))};requestAnimationFrame(f);setTimeout(()=>r(0),1500)});
+ const mem=navigator.deviceMemory||4,cores=navigator.hardwareConcurrency||4,rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ return{cpu:Math.round(cpu),fps:Math.round(fps),mem,cores,rm,ts:Date.now(),good:!rm&&cpu<45&&fps>=45&&mem>=4&&cores>=4}}
+boot.then(async v=>{await new Promise(r=>(window.requestIdleCallback||setTimeout)(r,{timeout:2500}));const r=await bench();await idb('put','bench',r);
+ if(v===undefined){FANCY=r.good;await idb('put','fancy',FANCY);applyFx();renderNav();if(FANCY)toast('Fancy UI turned on for your device. Change it in the footer.')}});
+addEventListener('scroll',()=>{const e=document.documentElement;q('#pg').style.width=FANCY?e.scrollTop/((e.scrollHeight-e.clientHeight)||1)*100+'%':'0'},{passive:true});
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.append(d);setTimeout(()=>d.remove(),2800)}
+function modal({title,body,ok='OK',cancel,wide}){return new Promise(res=>{const d=document.createElement('div');d.className='mo';
+ d.innerHTML=`<div class="md${wide?' w':''}" role="dialog" aria-modal="true"><h3>${esc(title||'')}</h3><div>${body}</div><div class="row" style="justify-content:flex-end;margin:16px 0 0">${cancel?`<button class="g" data-r="0">${cancel}</button>`:''}<button data-r="1">${ok}</button></div></div>`;
+ const done=v=>{const val=d.querySelector('textarea')?.value;d.remove();removeEventListener('keydown',k);res({ok:v,val})},k=e=>e.key==='Escape'&&done(false);
+ d.onclick=e=>{if(e.target===d)done(false);const r=e.target.closest('[data-r]')?.dataset.r;if(r!=null)done(r==='1')};addEventListener('keydown',k);document.body.append(d);(d.querySelector('textarea')||d.querySelector('[data-r="1"]')).focus()})}
+const uiAlert=m=>FANCY?modal({title:'Notice',body:`<p>${esc(m)}</p>`}):Promise.resolve(alert(m));
+const uiConfirm=m=>FANCY?modal({title:'Please confirm',body:`<p>${esc(m)}</p>`,ok:'Confirm',cancel:'Cancel'}).then(r=>r.ok):Promise.resolve(confirm(m));
+
+/* ---- Markdown blocks (lists, quotes, tables, code, h3/h4, rules) ---- */
+function md(s){const L=s.split('\n');let o='',i=0,p=[];const fp=()=>{if(p.length){o+=`<p>${fmt(p.join(' '))}</p>`;p=[]}},row=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+ while(i<L.length){const l=L[i];let m;
+  if(l.startsWith('```')){fp();const c=[];i++;while(i<L.length&&!L[i].startsWith('```'))c.push(L[i++]);i++;o+=`<pre class="cb">${esc(c.join('\n'))}</pre>`;continue}
+  if(!l.trim()){fp();i++;continue}
+  if(m=l.match(/^(#{3,4})\s+(.+)/)){fp();o+=`<h${m[1].length}>${fmt(m[2])}</h${m[1].length}>`;i++;continue}
+  if(/^[-*]\s/.test(l)||/^\d+[.)]\s/.test(l)){fp();const ol=/^\d/.test(l),r=ol?/^\d+[.)]\s/:/^[-*]\s/,it=[];while(i<L.length&&r.test(L[i]))it.push(L[i++].replace(r,''));const t=ol?'ol':'ul';o+=`<${t}>${it.map(x=>`<li>${fmt(x)}</li>`).join('')}</${t}>`;continue}
+  if(l.startsWith('> ')){fp();const b=[];while(i<L.length&&L[i].startsWith('> '))b.push(L[i++].slice(2));o+=`<blockquote>${fmt(b.join(' '))}</blockquote>`;continue}
+  if(/^---+$/.test(l.trim())){fp();o+='<hr>';i++;continue}
+  if(l.includes('|')&&/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(L[i+1]||'')&&/-/.test(L[i+1])){fp();const h=row(l);i+=2;const rs=[];while(i<L.length&&L[i].includes('|'))rs.push(row(L[i++]));o+=`<div class="tw"><table><tr>${h.map(c=>`<th>${fmt(c)}</th>`).join('')}</tr>${rs.map(r=>`<tr>${r.map(c=>`<td>${fmt(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;continue}
+  p.push(l);i++}
+ fp();return o}
+
+/* ---- AI article prompt ---- */
+const AIP=()=>['You are helping me write an encyclopedia article for Reitcyclopedia, a free community encyclopedia.','','STEP 1: Ask me what the subject is and what I want included. Wait for my reply.','STEP 2: Write the article and reply with ONLY one JSON code block and nothing else, in exactly this shape:','','{"title":"...","type":"Person|Place|Organization|Concept|Event|General","summary":"...","infobox":[["Label","Value"]],"blocks":[{"t":"h","x":"Heading"},{"t":"p","x":"Paragraph text"},{"t":"l","x":"item one\\nitem two"},{"t":"c","h":"Dropdown title","x":"Hidden text"}]}','','RULES:','- Neutral, factual, encyclopedic tone. Do not invent facts. If unsure, leave it out.','- summary: 40-500 characters, 1-3 sentences, no headings.','- infobox: short label/value rows. Suggested labels by type: '+Object.entries(TPL).map(([k,v])=>k+' ('+(v.join(', ')||'any relevant facts')+')').join('; ')+'. Add other useful rows.','- blocks: at least 3 headings (t "h"), each followed by content. At least 150 characters of body text in total, and under 30,000 characters overall.','- Block types: h = heading, p = paragraph (Markdown allowed), l = bullet list (one item per line, joined with \\n), c = collapsible dropdown (h = its title, x = its Markdown content).','- Markdown allowed in text: **bold**, *italic*, ~~strike~~, ==highlight==, `code`, [text](https://url), [[Other Article Title]] for links to other articles, "- " bullets, "1. " numbered lines, "> " quotes, | pipe | tables |, and ``` code fences.','- No images. The JSON must be valid: escape double quotes and use \\n for line breaks.'].join('\n');
+async function copyAI(){const t=AIP();try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove()}toast('Prompt copied. Paste it into a chatbot.')}
+function parseAI(t){const m=t.match(/```(?:json)?\s*([\s\S]*?)```/);let s=(m?m[1]:t).trim();s=s.slice(s.indexOf('{'),s.lastIndexOf('}')+1);const o=JSON.parse(s);
+ if(!o.title||!o.summary||!Array.isArray(o.blocks))throw Error('The reply is missing a title, summary or blocks.');
+ return{title:String(o.title).slice(0,120),type:TPL[o.type]?o.type:'General',summary:String(o.summary),infobox:(o.infobox||[]).filter(r=>Array.isArray(r)&&r[0]&&r[1]).map(r=>[String(r[0]),String(r[1])]),blocks:o.blocks.filter(b=>['h','p','l','c'].includes(b.t)&&b.x!=null).map(b=>({t:b.t,x:String(b.x),...(b.t==='c'?{h:String(b.h||'More')}:{})}))}}
+async function pasteAI(){const r=await modal({title:'Paste the AI response',body:'<p class="mu">Paste the full reply from the chatbot (the JSON block).</p><textarea rows="12"></textarea>',ok:'Review',cancel:'Cancel',wide:1});if(!r.ok)return;
+ let o;try{o=parseAI(r.val||'')}catch(e){return modal({title:"Couldn't read that",body:`<p>${esc(e.message)}</p><p class="mu">Make sure you pasted the complete JSON reply.</p>`})}
+ const v=await modal({title:'Review the article',body:`<div class="pv">${render(o)}<div style="clear:both"></div></div><p class="mu">Filling the editor replaces its current content. You can still edit everything before publishing.</p>`,ok:'Fill the editor',cancel:'Discard',wide:1});
+ if(v.ok){PRE=o;editor(EID)}}
+
 
 /* ---- compression: JSON -> gzip -> base64 ---- */
 const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)};
@@ -70,28 +149,44 @@ async function flush(){const k=Object.keys(buf);if(!k.length)return;const v={};l
 addEventListener('visibilitychange',()=>document.hidden&&flush());addEventListener('pagehide',flush);
 
 /* ---- auth ---- */
-onAuthStateChanged(auth,u=>{user=u;q('#nav').innerHTML=u?`<span class="mu">${esc(u.displayName||u.email)}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`:'<button id="si">Sign in with Google</button>';
- q('#si')&&(q('#si').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>alert(e.message)));q('#so')&&(q('#so').onclick=()=>signOut(auth));route()});
+function renderNav(){const n=q('#nav');
+ if(!user){n.innerHTML='<button id="si">Sign in with Google</button>';q('#si').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>uiAlert(e.message));return}
+ const nm=esc((user.displayName||user.email).slice(0,18)),it=`<a href="#/new">New article</a>${isAdmin()?'<a href="#/review">Review log</a>':''}<a href="#/help">Help</a><a href="#" id="so">Sign out</a>`;
+ n.innerHTML=FANCY?`<div class="menu"><button class="g" id="mb" aria-haspopup="true">${nm} ▾</button><div class="mp" id="mn" hidden>${it}</div></div>`:`<span class="mu">${nm}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`;
+ if(FANCY){const m=q('#mn');q('#mb').onclick=e=>{e.stopPropagation();m.hidden=!m.hidden};m.onclick=()=>m.hidden=true}
+ q('#so').onclick=e=>{e.preventDefault();signOut(auth)}}
+addEventListener('click',()=>{const m=q('#mn');if(m)m.hidden=true});
+onAuthStateChanged(auth,u=>{user=u;renderNav();route()});
 
 /* ---- router ---- */
 addEventListener('hashchange',route);
-async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));scrollTo(0,0);
- try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else await home()}
+async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;scrollTo({top:0,behavior:'instant'});
+ try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
  catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
 const need=f=>user?f():app.innerHTML='<div class="card">Sign in with Google to continue.</div>';
 const sbox=v=>`<form class="search row" onsubmit="location.hash='#/s/'+encodeURIComponent(this.q.value);return false"><input name="q" placeholder="Search articles by title" value="${esc(v||'')}"><button>Search</button></form>`;
 
 /* ---- home ---- */
-async function home(){app.innerHTML='<div class="hero"><h1>Reitcyclopedia</h1><p class="mu">A free encyclopedia anyone can write.</p></div>'+sbox()+'<div id="hm"></div>';
- const [st,rec]=await Promise.all([Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(8)))]);
+async function home(){app.innerHTML=`<div class="hero"><h1>Reitcyclopedia</h1><p class="mu" id="cn">Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;
+ const [st,rec,cn]=await Promise.all([Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(8))),getCountFromServer(collection(db,'articles')).catch(()=>null)]);
  const tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});
- const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8);
- const mine=Object.entries(hist).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8),mine=Object.entries(hist).sort((a,b)=>b[1]-a[1]).slice(0,5);
  const L=a=>a.map(([s,n])=>`<a href="#/a/${s}">${esc(pretty(s))} <span class="mu">${n?'('+n+')':''}</span></a>`).join('')||'<span class="mu">Nothing yet.</span>';
+ if(cn)q('#cn').textContent=cn.data().count.toLocaleString()+' articles and growing. Free to read, free to write.';
  q('#hm').innerHTML=`<div class="grid"><div class="card list"><h3>Trending</h3>${L(top)}<p class="mu">${views.toLocaleString()} total page views</p></div>
- <div class="card list"><h3>Recently updated</h3>${rec.docs.map(d=>`<a href="#/a/${d.id}">${esc(d.data().title)}</a>`).join('')||'<span class="mu">No articles yet. Write the first one.</span>'}</div>
- <div class="card list"><h3>Based on your reading</h3>${L(mine)}</div></div>`}
-
+ <div class="card list"><h3>Recently updated</h3>${rec.docs.map(d=>`<a href="#/a/${d.id}">${esc(d.data().title)}</a>`).join('')||'<span class="mu">No articles yet.</span>'}</div>
+ <div class="card list"><h3>Based on your reading</h3>${L(mine)}<p class="mu">Kept only on this device.</p></div>
+ <div class="card"><h3>Write for Reitcyclopedia</h3><p class="mu">Anyone with a Google account can publish up to 10 articles a day on any subject. Stuck? The editor can generate a prompt for an AI chatbot and fill the article in for you to review.</p><a href="#/new"><button>Start an article</button></a> <a href="#/help"><button class="g">Writing guide</button></a></div></div>`}
+async function rnd(){const c='abcdefghijklmnopqrstuvwxyz0123456789',k=c[Math.floor(Math.random()*c.length)],A=collection(db,'articles');let r=await getDocs(query(A,where('titleLower','>=',k),orderBy('titleLower'),limit(1)));if(r.empty)r=await getDocs(query(A,orderBy('titleLower'),limit(1)));if(r.empty)return home();location.replace('#/a/'+r.docs[0].id)}
+const chips=()=>`<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}</div>`;
+async function browse(){app.innerHTML=`<div class="card"><h1>Browse</h1>${chips()}<h3>Latest articles</h3><div class="list" id="tl">Loading…</div></div>`;const r=await getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(30)));q('#tl').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)}</span></a>`).join('')||'Nothing here yet.'}
+async function byType(t){if(!TPL[t])return browse();app.innerHTML=`<div class="card"><h1>${esc(t)} articles</h1>${chips()}<div class="list" id="tl">Loading…</div></div>`;const r=await getDocs(query(collection(db,'articles'),where('type','==',t),limit(60)));q('#tl').innerHTML=r.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.titleLower<b.titleLower?-1:1).map(a=>`<a href="#/a/${a.id}"><b>${esc(a.title)}</b> <span class="mu">${esc(a.summary.slice(0,100))}</span></a>`).join('')||'No articles of this type yet.'}
+function help(){const ex=x=>`<pre class="cb">${esc(x)}</pre>`;app.innerHTML=`<div class="card"><h1>Writing guide</h1><p>Every article needs a title, a type, a summary of 40 to 500 characters, at least one heading, and at least 150 characters of content. Articles are limited to 50 KB compressed.</p>
+<h2>Formatting</h2>${ex('**bold**  *italic*  ~~strike~~  ==highlight==  `code`\n[[Another Article]]  [link text](https://example.com)')}
+<p>Paragraphs and dropdown sections also accept these on their own lines:</p>${ex('### Small heading\n- bullet\n1. numbered\n> quote\n---\n| Name | Year |\n|------|------|\n| Moon | 1969 |\n\n```\ncode block\n```')}
+<h2>Infobox</h2><p>Add one "Label: Value" per line. Choosing a type pre-fills suggested labels.</p>
+<h2>AI article prompt</h2><p>In the editor, click <b>Copy prompt</b>, paste it into any chatbot, tell it the subject and what to cover, then copy its reply and click <b>Paste response</b>. You get a preview to approve before anything is filled in. Always check the facts.</p>
+<h2>Limits</h2><p>10 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
 async function search(t){app.innerHTML=sbox(t)+'<div class="card list" id="sr">Searching…</div>';const l=t.toLowerCase().trim();
  const r=await getDocs(query(collection(db,'articles'),where('titleLower','>=',l),where('titleLower','<=',l+'\uf8ff'),orderBy('titleLower'),limit(15)));
  q('#sr').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)} – ${esc(d.data().summary.slice(0,110))}</span></a>`).join('')||'No match. <a href="#/new">Write this article</a>.'}
@@ -101,27 +196,28 @@ async function load(id){const s=await getDoc(doc(db,'articles',id));if(!s.exists
 function render(a){let h=`<h1>${esc(a.title)}</h1><div class="mu">${esc(a.type)}</div>`;
  if(a.infobox?.length)h+=`<aside class="info"><h4>${esc(a.title)}</h4><dl>${a.infobox.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${fmt(v)}</dd>`).join('')}</dl></aside>`;
  h+=`<p>${fmt(a.summary)}</p>`;
- for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?b.x.split('\n\n').map(p=>`<p>${fmt(p)}</p>`).join(''):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${b.x.split('\n\n').map(p=>`<p>${fmt(p)}</p>`).join('')}</details>`;
+ for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?md(b.x):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${md(b.x)}</details>`;
  return h}
 async function view(id){app.innerHTML='<div class="card">Loading…</div>';const a=await load(id);
  if(!a){app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
  track(id);document.title=a.title+' – Reitcyclopedia';
  app.innerHTML=`<div class="card">${render(a)}<div style="clear:both"></div><hr style="border:0;border-top:1px solid var(--ln)"><div class="row mu">Revision ${a.rev} · by ${esc(a.authorName||'unknown')} ${user?`<a href="#/edit/${id}"><button class="g">Edit</button></a>`:''} ${isAdmin()?'<button class="d" id="dl">Delete</button>':''}</div></div>`;
- if(isAdmin())q('#dl').onclick=async()=>{if(confirm('Delete this article?')){const {deleteDoc}=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");await deleteDoc(doc(db,'articles',id));location.hash='#/'}}}
+ if(isAdmin())q('#dl').onclick=async()=>{if(await uiConfirm('Delete this article?')){const {deleteDoc}=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");await deleteDoc(doc(db,'articles',id));location.hash='#/'}}}
 
 /* ---- editor ---- */
-let E,EID=null;
+let E,EID=null;const CPI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 async function editor(id){EID=id||null;let a=null;
  if(id){a=await load(id);if(!a)return app.innerHTML='<div class="card">Article not found.</div>'}
  E=a?{title:a.title,type:a.type,summary:a.summary,infobox:a.infobox||[],blocks:a.blocks,base:a.rev}:{title:location.hash.startsWith('#/new/')?pretty(location.hash.slice(7)):'',type:'General',summary:'',infobox:[],blocks:[{t:'h',x:''},{t:'p',x:''}]};
- app.innerHTML=`<div class="card"><h1>${id?'Edit':'New'} article</h1>
+ if(PRE){if(id)delete PRE.title;E={...E,...PRE};PRE=null}
+ app.innerHTML=`<div class="card"><h1>${id?'Edit':'New'} article</h1><div class="ai"><div><b>AI article prompt</b><div class="mu">Copy the prompt, paste it into any chatbot, answer its questions, then paste its reply here to review.</div></div><button class="g" id="cp" title="Copy AI prompt">${CPI} Copy prompt</button><button class="g" id="ps">Paste response</button></div>
  ${id&&!isAdmin()?'<p class="mu">Edits are reviewed by an admin before they go live.</p>':''}
  <div class="row"><input id="t" placeholder="Title" value="${esc(E.title)}" ${id?'disabled':''}><select id="ty" style="max-width:190px">${Object.keys(TPL).map(k=>`<option${k==E.type?' selected':''}>${k}</option>`).join('')}</select></div>
  <p class="mu">Summary (40–500 characters, required). Use [[Article Title]] for internal links, **bold**, [text](https://url) for external links.</p>
  <textarea id="sm" rows="3">${esc(E.summary)}</textarea>
  <p class="mu">Infobox, one "Label: Value" per line (shown in the side bar).</p>
  <textarea id="ib" rows="5"></textarea>
- <h3 style="margin-top:18px">Content</h3><div id="bl"></div>
+ <h3 style="margin-top:18px">Content</h3><p class="mu">Paragraphs and dropdowns support Markdown: lists, quotes, tables, code, *italic*, ==highlight==. See Help.</p><div id="bl"></div>
  <div class="row"><button class="g" data-add="h">+ Heading</button><button class="g" data-add="p">+ Paragraph</button><button class="g" data-add="l">+ List</button><button class="g" data-add="c">+ Dropdown</button></div>
  <div id="er" class="err"></div><div class="row"><button id="sv">${id&&!isAdmin()?'Submit edit for review':'Publish'}</button><span class="mu" id="sz"></span></div></div>`;
  q('#ty').onchange=()=>{if(!q('#ib').value.trim())fillIb()};q('#ib').value=E.infobox.map(([k,v])=>k+': '+v).join('\n');if(!E.infobox.length)fillIb();
@@ -130,7 +226,7 @@ async function editor(id){EID=id||null;let a=null;
  q('#bl').onchange=e=>{if(e.target.dataset.f==='t')drawB()};
  q('#bl').onclick=e=>{const a=e.target.dataset.a,i=+e.target.closest('.blk')?.dataset.i;if(!a)return;const B=E.blocks;if(a==='rm')B.splice(i,1);else{const j=a==='up'?i-1:i+1;if(j<0||j>=B.length)return;[B[i],B[j]]=[B[j],B[i]]}drawB()};
  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{E.blocks.push({t:b.dataset.add,x:'',h:''});drawB()});
- q('#sv').onclick=save}
+ q('#cp').onclick=copyAI;q('#ps').onclick=pasteAI;q('#sv').onclick=save}
 const fillIb=()=>q('#ib').value=TPL[q('#ty').value].map(k=>k+': ').join('\n');
 function drawB(){q('#bl').innerHTML=E.blocks.map((b,i)=>`<div class="blk" data-i="${i}"><div class="row"><select data-f="t" style="max-width:190px">${[['h','Heading'],['p','Paragraph'],['l','List (one per line)'],['c','Dropdown section']].map(([v,n])=>`<option value="${v}"${b.t==v?' selected':''}>${n}</option>`).join('')}</select>${b.t=='c'?`<input data-f="h" placeholder="Dropdown title" value="${esc(b.h||'')}">`:''}<span class="sp"></span><button class="g" data-a="up">↑</button><button class="g" data-a="dn">↓</button><button class="g" data-a="rm">✕</button></div><textarea data-f="x" rows="${b.t=='h'?1:5}">${esc(b.x||'')}</textarea></div>`).join('')}
 async function save(){const er=q('#er');er.textContent='';
