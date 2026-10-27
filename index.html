@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en" class="fancy"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Reitcyclopedia</title>
 <link href="https://fonts.googleapis.com/css2?family=Average&display=swap" rel="stylesheet">
 <style>
@@ -65,8 +65,31 @@ html.fancy{scroll-behavior:smooth;scroll-padding-top:70px}
 .fancy .chip:hover{box-shadow:0 6px 14px -8px rgba(30,40,60,.4);text-decoration:none}
 @keyframes fi{from{opacity:0}}@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}}
 @media(prefers-reduced-motion:reduce){.fancy *{animation:none!important;transition:none!important}html.fancy{scroll-behavior:auto}}
+
+body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}main{flex:1 0 auto;width:100%;min-height:0}footer{margin-top:30px}
+.logo{display:flex;align-items:center;gap:10px}.logo .mark{width:32px;height:32px;flex:none}
+.hero{position:relative;padding:44px 0 14px}.hero .mark{width:88px;height:88px;display:block;margin:0 auto 12px}
+.hero h1{font-size:clamp(40px,9vw,70px);line-height:1.05;margin:0}.hero .tag{color:var(--mu);margin:10px 0 0;font-size:18px}
+.fancy .hero::before{content:"";position:absolute;inset:-26px 0 auto;height:300px;z-index:-1;pointer-events:none;background:radial-gradient(38% 60% at 22% 40%,rgba(21,101,216,.2),transparent 70%),radial-gradient(38% 60% at 78% 30%,rgba(123,140,255,.22),transparent 70%),radial-gradient(34% 50% at 50% 85%,rgba(150,160,180,.28),transparent 70%)}
+.fancy .hero .mark{filter:drop-shadow(0 16px 20px rgba(21,101,216,.38));animation:fl 6s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-7px) rotate(-2deg)}}
+.fancy h1,.fancy h2,.fancy h3,.fancy .info h4,.fancy .wm,.fancy footer b{background-image:var(--gt,linear-gradient(100deg,#1b2433,#1565d8 70%,#6d86ff));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.fancy h2,.fancy h3{--gt:linear-gradient(90deg,#27324a,#1565d8 80%)}
+.fancy .wm,.fancy footer b{--gt:linear-gradient(100deg,#0b3fa8,#1565d8 45%,#6d86ff 80%,#9aa7ff)}
+.fancy h2{border-bottom:2px solid transparent;border-image:linear-gradient(90deg,#bccbe9,transparent) 1}
+.fancy .card{border:1px solid transparent;background:linear-gradient(160deg,#fff,#f3f5f8) padding-box,linear-gradient(145deg,#cfdcf6,#eceff4 45%,#c3cfe6) border-box}
+.fancy header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#1565d8,#7b8cff,transparent);opacity:.5}
+.fancy footer{background:linear-gradient(180deg,rgba(255,255,255,.65),#e6e9f0)}
+.fancy #pg{background:linear-gradient(90deg,#1565d8,#7b8cff)}
+.fancy .chip{border:1px solid transparent;background:linear-gradient(180deg,#fff,#f1f3f7) padding-box,linear-gradient(135deg,#c9d7f3,#e4e8ef) border-box}
+.fancy .chip:hover{background:linear-gradient(135deg,#2f7be8,#6d86ff);color:#fff}
+.fancy input:focus,.fancy select:focus,.fancy textarea:focus{outline:0;box-shadow:0 0 0 4px rgba(21,101,216,.15),0 0 0 1px var(--lk)}
+.fancy blockquote{background:linear-gradient(90deg,#e5eefd,#f7f8fb)}.fancy th{background:linear-gradient(180deg,#f5f7fb,#e8ecf3)}
+.fancy summary{background:linear-gradient(90deg,#1565d8,#6d86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.fancy a.chip,.fancy .list a:hover{text-decoration:none}.fancy .list a{border-radius:10px;padding:5px 8px;margin:0 -8px;transition:background .15s}.fancy .list a:hover{background:linear-gradient(90deg,#e8f0fd,transparent)}
+.fancy .mo .md h3{--gt:linear-gradient(90deg,#1b2433,#1565d8)}
 </style></head><body>
-<header><div class="bar"><a class="logo" href="#/">Reitcyclopedia</a><span class="sp"></span><span id="nav"></span></div></header>
+<header><div class="bar"><a class="logo" href="#/"><span class="wm">Reitcyclopedia</span></a><span class="sp"></span><span id="nav"></span></div></header>
 <div id="pg"></div><main id="app"></main>
 <footer><div class="bar"><b style="color:var(--lk)">Reitcyclopedia</b><span class="mu">Free to read, free to write.</span><span class="sp"></span><a href="#/">Home</a><a href="#/browse">Browse</a><a href="#/random">Random</a><a href="#/help">Help</a><button class="g" id="fx">Fancy UI: Off</button></div></footer>
 <script type="module">
@@ -82,21 +105,17 @@ const q=s=>document.querySelector(s), app=q('#app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const slug=t=>t.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const pretty=s=>s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/==(.+?)==/g,'<mark>$1</mark>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*\*(.+?)\*\*\*/g,'<b><i>$1</i></b>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/==(.+?)==/g,'<mark>$1</mark>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
 const isAdmin=()=>user&&user.emailVerified&&ADMINS.includes(user.email);
 let user=null,PRE=null;
 /* ---- settings (IndexedDB), UI mode, modals ---- */
 const idb=(m,k,v)=>new Promise(res=>{try{const r=indexedDB.open('rc',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onerror=()=>res();r.onsuccess=()=>{const t=r.result.transaction('s',m==='get'?'readonly':'readwrite'),o=t.objectStore('s'),x=m==='get'?o.get(k):o.put(v,k);x.onsuccess=()=>res(x.result);x.onerror=()=>res()}}catch(e){res()}});
-let FANCY=false;
+const MARK='<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6aaeff"/><stop offset=".55" stop-color="#1565d8"/><stop offset="1" stop-color="#0b3fa8"/></linearGradient><linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9e4f8"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#lg)"/><path d="M32 22c-5-3-12-4-18-3v26c6-1 13 0 18 3 5-3 12-4 18-3V19c-6-1-13 0-18 3z" fill="url(#lg2)"/><path d="M32 22v26" stroke="#1565d8" stroke-width="2.5" stroke-linecap="round"/><path d="M47 8l1.7 4.6L53.3 14l-4.6 1.7L47 20.3l-1.7-4.6L40.7 14l4.6-1.4z" fill="#fff"/></svg>';
+q('.logo').insertAdjacentHTML('afterbegin',MARK);
+let FANCY=true;
 const applyFx=()=>{document.documentElement.classList.toggle('fancy',FANCY);q('#fx').textContent='Fancy UI: '+(FANCY?'On':'Off')};
-const boot=idb('get','fancy').then(v=>{FANCY=v===true;applyFx();return v});
+const boot=idb('get','fancy').then(v=>{FANCY=v!==false;applyFx();return v});
 q('#fx').onclick=()=>{FANCY=!FANCY;applyFx();renderNav();idb('put','fancy',FANCY)};
-async function bench(){const t=performance.now();let x=0;for(let i=0;i<2e6;i++)x+=Math.sqrt(i);const cpu=performance.now()-t;
- const fps=await new Promise(r=>{let n=0;const s=performance.now(),f=t=>{n++;t-s<500?requestAnimationFrame(f):r(n*1000/(t-s))};requestAnimationFrame(f);setTimeout(()=>r(0),1500)});
- const mem=navigator.deviceMemory||4,cores=navigator.hardwareConcurrency||4,rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
- return{cpu:Math.round(cpu),fps:Math.round(fps),mem,cores,rm,ts:Date.now(),good:!rm&&cpu<45&&fps>=45&&mem>=4&&cores>=4}}
-boot.then(async v=>{await new Promise(r=>(window.requestIdleCallback||setTimeout)(r,{timeout:2500}));const r=await bench();await idb('put','bench',r);
- if(v===undefined){FANCY=r.good;await idb('put','fancy',FANCY);applyFx();renderNav();if(FANCY)toast('Fancy UI turned on for your device. Change it in the footer.')}});
 addEventListener('scroll',()=>{const e=document.documentElement;q('#pg').style.width=FANCY?e.scrollTop/((e.scrollHeight-e.clientHeight)||1)*100+'%':'0'},{passive:true});
 function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.append(d);setTimeout(()=>d.remove(),2800)}
 function modal({title,body,ok='OK',cancel,wide}){return new Promise(res=>{const d=document.createElement('div');d.className='mo';
@@ -160,14 +179,14 @@ onAuthStateChanged(auth,u=>{user=u;renderNav();route()});
 
 /* ---- router ---- */
 addEventListener('hashchange',route);
-async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;scrollTo({top:0,behavior:'instant'});
+async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;document.title='Reitcyclopedia';scrollTo({top:0,behavior:'instant'});
  try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
  catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
 const need=f=>user?f():app.innerHTML='<div class="card">Sign in with Google to continue.</div>';
 const sbox=v=>`<form class="search row" onsubmit="location.hash='#/s/'+encodeURIComponent(this.q.value);return false"><input name="q" placeholder="Search articles by title" value="${esc(v||'')}"><button>Search</button></form>`;
 
 /* ---- home ---- */
-async function home(){app.innerHTML=`<div class="hero"><h1>Reitcyclopedia</h1><p class="mu" id="cn">Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;
+async function home(){app.innerHTML=`<div class="hero">${MARK}<h1 class="wm">Reitcyclopedia</h1><p class="tag" id="cn">Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;
  const [st,rec,cn]=await Promise.all([Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),getDocs(query(collection(db,'articles'),orderBy('updated','desc'),limit(8))),getCountFromServer(collection(db,'articles')).catch(()=>null)]);
  const tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});
  const top=Object.entries(tot).sort((a,b)=>b[1]-a[1]).slice(0,8),mine=Object.entries(hist).sort((a,b)=>b[1]-a[1]).slice(0,5);
