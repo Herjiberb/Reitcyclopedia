@@ -233,7 +233,7 @@ function help(){const ex=x=>`<pre class="cb">${esc(x)}</pre>`;app.innerHTML=`<di
 <p>Paragraphs and dropdown sections also accept these on their own lines:</p>${ex('### Small heading\n- bullet\n1. numbered\n> quote\n---\n| Name | Year |\n|------|------|\n| Moon | 1969 |\n\n```\ncode block\n```')}
 <h2>Infobox</h2><p>Add one "Label: Value" per line. Choosing a type pre-fills suggested labels.</p>
 <h2>AI article prompt</h2><p>In the editor, click <b>Copy prompt</b>, paste it into any chatbot, tell it the subject and what to cover, then copy its reply and click <b>Paste response</b>. You get a preview to approve before anything is filled in. Always check the facts.</p>
-<h2>Limits</h2><p>10 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
+<h2>Limits</h2><p>25 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
 async function search(t){app.innerHTML=sbox(t)+'<div class="card list" id="sr">Searching…</div>';const l=t.toLowerCase().trim();
  const r=await getDocs(query(collection(db,'articles'),where('titleLower','>=',l),where('titleLower','<=',l+'\uf8ff'),orderBy('titleLower'),limit(15)));
  q('#sr').innerHTML=r.docs.map(d=>`<a href="#/a/${d.id}"><b>${esc(d.data().title)}</b> <span class="mu">${esc(d.data().type)} – ${esc(d.data().summary.slice(0,110))}</span></a>`).join('')||'No match. <a href="#/new">Write this article</a>.'}
