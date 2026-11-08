@@ -1,139 +1,523 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Service worker reset</title>
+<html lang="en" class="fancy"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google-site-verification" content="BXA3rDb6HypaAA-8dCghVRuLdsjEvRQMBypGYdhAvNg" />
+<meta name="description" content="Reitcyclopedia is a free community encyclopedia where anyone with a verified account can read, write and improve articles on people, places, organizations, concepts and events.">
+<title>Reitcyclopedia</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22lg%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%236aaeff%22/%3E%3Cstop offset=%22.55%22 stop-color=%22%231565d8%22/%3E%3Cstop offset=%221%22 stop-color=%22%230b3fa8%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22lg2%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%23fff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23d9e4f8%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22url%28%23lg%29%22/%3E%3Cpath d=%22M32 22c-5-3-12-4-18-3v26c6-1 13 0 18 3 5-3 12-4 18-3V19c-6-1-13 0-18 3z%22 fill=%22url%28%23lg2%29%22/%3E%3Cpath d=%22M32 22v26%22 stroke=%22%231565d8%22 stroke-width=%222.5%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M47 8l1.7 4.6L53.3 14l-4.6 1.7L47 20.3l-1.7-4.6L40.7 14l4.6-1.4z%22 fill=%22%23fff%22/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Average&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f6f7f9;
-    --fg: #1b1f24;
-    --muted: #5b6570;
-    --panel: #ffffff;
-    --line: #d9dee4;
-    --ok: #1a7f4b;
-    --err: #b3261e;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14171a;
-      --fg: #e8ebee;
-      --muted: #9aa4ae;
-      --panel: #1c2024;
-      --line: #2e353c;
-      --ok: #4cc38a;
-      --err: #ff8a80;
-    }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body {
-    background: var(--bg);
-    color: var(--fg);
-    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    padding: 2rem 1rem;
-  }
-  main { max-width: 36rem; margin: 0 auto; }
-  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
-  p.lead { color: var(--muted); margin: 0 0 1.5rem; }
-  #status { font-weight: 600; margin-bottom: 1rem; }
-  #status.ok { color: var(--ok); }
-  #status.err { color: var(--err); }
-  ul { list-style: none; margin: 0 0 1.5rem; padding: 0; }
-  li {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: .6rem .8rem;
-    margin-bottom: .5rem;
-    overflow-wrap: anywhere;
-    font-size: .9rem;
-  }
-  button {
-    font: inherit;
-    padding: .55rem 1rem;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    color: var(--fg);
-    cursor: pointer;
-  }
-  button:focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
-  small { display: block; color: var(--muted); margin-top: 1.5rem; }
-</style>
-</head>
-<body>
-<main>
-  <h1>Service worker reset</h1>
-  <p class="lead">Removes every service worker registered on <strong id="origin"></strong>. IndexedDB, localStorage, and cookies are left alone.</p>
+:root{--bg:#f4f7fc;--card:#fff;--tx:#1e2633;--mu:#667085;--ln:#e3e9f3;--lk:#1565d8;--lkb:#e8f0fd;--btn:#1565d8;--inp:#fff;--code:#eef2f8;--pre:#f1f4f9;--mark:#fff0a8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.7 'Average',Georgia,serif}
+a{color:var(--lk);text-decoration:none}a:hover{text-decoration:underline}
+header{background:var(--card);border-bottom:1px solid var(--ln);position:sticky;top:0;z-index:5}
+.bar{max-width:980px;margin:auto;display:flex;align-items:center;gap:14px;padding:10px 18px}
+.logo{font-size:23px;color:var(--lk);font-weight:normal}.sp{flex:1}
+main{max-width:980px;margin:22px auto;padding:0 18px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:18px;padding:24px 28px;margin-bottom:18px}
+h1{font-size:34px;margin:0 0 6px;font-weight:normal}h2{font-size:25px;margin:26px 0 8px;font-weight:normal;border-bottom:1px solid var(--ln);padding-bottom:4px}h3{font-size:20px;margin:0 0 6px;font-weight:normal}
+input,select,textarea,button{font:inherit;font-size:16px}
+input,select,textarea{width:100%;padding:9px 13px;border:1px solid var(--ln);border-radius:12px;background:var(--inp);color:var(--tx)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--lk);outline-offset:1px}
+button{background:var(--btn);color:#fff;border:0;border-radius:999px;padding:8px 20px;cursor:pointer}
+button.g{background:var(--lkb);color:var(--lk);padding:6px 13px}button.d{background:#d92d20}
+button:disabled{opacity:.42;cursor:default;filter:none}
+.mu{color:var(--mu);font-size:15px}.row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.search{max-width:560px;margin:auto}.hero{text-align:center;padding:30px 0 10px}
+.hero h1{font-size:44px;color:var(--lk)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.list a{display:block;padding:5px 0}
+.info{float:right;width:270px;margin:0 0 14px 22px;border:1px solid var(--ln);border-radius:14px;background:var(--bg);padding:12px 14px;font-size:15px;line-height:1.5}
+.info h4{margin:0 0 8px;text-align:center;font-weight:normal;font-size:18px}
+.info dl{margin:0}.info dt{color:var(--mu);margin-top:6px}.info dd{margin:0}
+details{border:1px solid var(--ln);border-radius:12px;padding:8px 14px;margin:10px 0;clear:both}summary{cursor:pointer;color:var(--lk)}
+.blk{border:1px solid var(--ln);border-radius:14px;padding:10px;margin-bottom:10px}
+.err{color:#d92d20;margin:8px 0}.ok{color:#067647}
+pre.df{background:var(--bg);border-radius:12px;padding:10px;white-space:pre-wrap;font-size:14px;max-height:260px;overflow:auto}
+.add{color:#067647}.del{color:#d92d20}
+@media(max-width:640px){.info{float:none;width:100%;margin:0 0 14px}.card{padding:18px}}
 
-  <div id="status" role="status" aria-live="polite">Working…</div>
-  <ul id="log"></ul>
-  <button id="again" type="button">Run again</button>
+code{background:var(--code);padding:1px 6px;border-radius:6px;font-size:.9em}
+pre.cb{background:var(--pre);border-radius:12px;padding:12px;overflow:auto;font-size:14px;white-space:pre}
+blockquote{margin:12px 0;padding:6px 16px;border-left:4px solid var(--lk);background:var(--lkb);border-radius:0 12px 12px 0}
+mark{background:var(--mark);color:inherit;border-radius:4px;padding:0 3px}hr{border:0;border-top:1px solid var(--ln)}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--ln);padding:6px 10px;text-align:left}.tw{overflow:auto;margin:12px 0}
+main{min-height:62vh}footer{border-top:1px solid var(--ln);margin-top:30px;background:var(--card)}footer .bar{flex-wrap:wrap;gap:16px;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0 22px}.chip{background:var(--card);border:1px solid var(--ln);border-radius:999px;padding:4px 16px;font-size:15px}
+.ai{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--lkb);border-radius:14px;padding:12px 16px;margin:10px 0 14px}.ai>div{flex:1;min-width:220px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);display:grid;place-items:center;z-index:50;padding:16px}
+.md{background:var(--card);border-radius:16px;padding:20px 22px;max-width:440px;width:100%;max-height:86vh;overflow:auto}.md.w{max-width:780px}.md h3{margin-top:0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1e2633;color:#fff;padding:10px 20px;border-radius:999px;z-index:60;font-size:15px}
+.menu{position:relative}.mp{position:absolute;right:0;top:calc(100% + 8px);background:var(--card);border:1px solid var(--ln);border-radius:14px;min-width:190px;padding:6px;z-index:20}
+.mp[hidden]{display:none}.mp a{display:block;padding:8px 12px;border-radius:10px;color:var(--tx)}.mp a:hover{background:var(--lkb);text-decoration:none}
+#pg{position:fixed;top:0;left:0;height:3px;background:var(--lk);z-index:30;width:0}
+.pv{max-height:50vh;overflow:auto;border:1px solid var(--ln);border-radius:12px;padding:6px 18px}
+html.fancy{scroll-behavior:smooth;scroll-padding-top:70px}
+.fancy body{background:linear-gradient(180deg,#fcfcfd 0,#eceef2 480px,#e4e7ec);background-attachment:fixed;overscroll-behavior-y:none}
+.fancy header{background:rgba(255,255,255,.78);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 8px 24px -18px rgba(30,40,60,.35)}
+.fancy .card{background:linear-gradient(160deg,#fff,#f3f5f8);border-radius:24px;border-color:#e0e4ea;box-shadow:0 1px 2px rgba(30,40,60,.05),0 16px 36px -20px rgba(30,40,60,.3);transition:transform .25s,box-shadow .25s}
+.fancy .grid .card:hover{transform:translateY(-3px);box-shadow:0 1px 2px rgba(30,40,60,.06),0 24px 44px -20px rgba(30,40,60,.38)}
+.fancy button{background:linear-gradient(180deg,#3282ea,#1259c9);box-shadow:0 6px 14px -8px rgba(21,101,216,.8);transition:transform .15s,filter .15s}
+.fancy button:hover{filter:brightness(1.07);transform:translateY(-1px)}.fancy button.g{background:linear-gradient(180deg,#fff,#edf0f5);color:var(--lk);box-shadow:inset 0 0 0 1px var(--ln)}
+.fancy button.d{background:linear-gradient(180deg,#ee4a3d,#c8281b)}
+.fancy input,.fancy select,.fancy textarea{border-radius:14px;background:linear-gradient(180deg,#fafbfc,#fff);transition:box-shadow .2s}
+.fancy .info,.fancy .chip,.fancy .blk,.fancy details,.fancy .pv{background:linear-gradient(180deg,#fff,#f1f3f7);border-radius:16px}
+.fancy .ai{background:linear-gradient(135deg,#e9f1fe,#f4f6fa)}
+.fancy .mp,.fancy .md{border-radius:20px;background:linear-gradient(180deg,#fff,#f4f6f9);box-shadow:0 24px 60px -18px rgba(20,30,50,.45)}
+.fancy .mo{backdrop-filter:blur(7px);background:rgba(28,36,50,.36);animation:fi .18s}.fancy .md,.fancy .mp:not([hidden]){animation:pop .22s cubic-bezier(.2,.9,.3,1.2)}
+.fancy ::-webkit-scrollbar{width:11px;height:11px}.fancy ::-webkit-scrollbar-thumb{background:#c5ccd8;border-radius:9px;border:3px solid transparent;background-clip:padding-box}
+.fancy .chip:hover{box-shadow:0 6px 14px -8px rgba(30,40,60,.4);text-decoration:none}
+@keyframes fi{from{opacity:0}}@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}}
+@media(prefers-reduced-motion:reduce){.fancy *{animation:none!important;transition:none!important}html.fancy{scroll-behavior:auto}}
 
-  <small>Service workers that are currently controlling a page may keep running until that page is closed. Reload any other tabs on this site afterward.</small>
-</main>
+body{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}main{flex:1 0 auto;width:100%;min-height:0}footer{margin-top:30px}
+.logo{display:flex;align-items:center;gap:10px}.logo .mark{width:32px;height:32px;flex:none}
+.hero{position:relative;padding:44px 0 14px}.hero .mark{width:88px;height:88px;display:block;margin:0 auto 12px}
+.hero h1{font-size:clamp(40px,9vw,70px);line-height:1.05;margin:0}.hero .tag{color:var(--mu);margin:10px 0 0;font-size:18px}
+.fancy .hero::before{content:"";position:absolute;inset:-26px 0 auto;height:300px;z-index:-1;pointer-events:none;background:radial-gradient(38% 60% at 22% 40%,rgba(21,101,216,.2),transparent 70%),radial-gradient(38% 60% at 78% 30%,rgba(123,140,255,.22),transparent 70%),radial-gradient(34% 50% at 50% 85%,rgba(150,160,180,.28),transparent 70%)}
+.fancy .hero .mark{filter:drop-shadow(0 16px 20px rgba(21,101,216,.38));animation:fl 6s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-7px) rotate(-2deg)}}
+.fancy h1,.fancy h2,.fancy h3,.fancy .info h4,.fancy .wm,.fancy footer b{background-image:var(--gt,linear-gradient(100deg,#1b2433,#1565d8 70%,#6d86ff));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.fancy h2,.fancy h3{--gt:linear-gradient(90deg,#27324a,#1565d8 80%)}
+.fancy .wm,.fancy footer b{--gt:linear-gradient(100deg,#0b3fa8,#1565d8 45%,#6d86ff 80%,#9aa7ff)}
+.fancy h2{border-bottom:2px solid transparent;border-image:linear-gradient(90deg,#bccbe9,transparent) 1}
+.fancy .card{border:1px solid transparent;background:linear-gradient(160deg,#fff,#f3f5f8) padding-box,linear-gradient(145deg,#cfdcf6,#eceff4 45%,#c3cfe6) border-box}
+.fancy header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,#1565d8,#7b8cff,transparent);opacity:.5}
+.fancy footer{background:linear-gradient(180deg,rgba(255,255,255,.65),#e6e9f0)}
+.fancy #pg{background:linear-gradient(90deg,#1565d8,#7b8cff)}
+.fancy .chip{border:1px solid transparent;background:linear-gradient(180deg,#fff,#f1f3f7) padding-box,linear-gradient(135deg,#c9d7f3,#e4e8ef) border-box}
+.fancy .chip:hover{background:linear-gradient(135deg,#2f7be8,#6d86ff);color:#fff}
+.fancy input:focus,.fancy select:focus,.fancy textarea:focus{outline:0;box-shadow:0 0 0 4px rgba(21,101,216,.15),0 0 0 1px var(--lk)}
+.fancy blockquote{background:linear-gradient(90deg,#e5eefd,#f7f8fb)}.fancy th{background:linear-gradient(180deg,#f5f7fb,#e8ecf3)}
+.fancy summary{background:linear-gradient(90deg,#1565d8,#6d86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.fancy a.chip,.fancy .list a:hover{text-decoration:none}.fancy .list a{border-radius:10px;padding:5px 8px;margin:0 -8px;transition:background .15s}.fancy .list a:hover{background:linear-gradient(90deg,#e8f0fd,transparent)}
+.fancy .mo .md h3{--gt:linear-gradient(90deg,#1b2433,#1565d8)}
+.vb{background:linear-gradient(90deg,#fff4d6,#fffaec);border-bottom:1px solid #f1dfa8;padding:10px 18px;text-align:center;font-size:15px}.vb[hidden]{display:none}.vb button{padding:4px 14px;margin-left:4px}.ab{display:flex;flex-direction:column;gap:10px}.ab .row{margin:0}.ab .row button{flex:1}
+.sw{position:relative}.dd{position:absolute;left:0;right:0;top:100%;z-index:30;max-height:300px;overflow-y:auto;margin-top:4px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+:root{--arr:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231565d8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")}
+select{-webkit-appearance:none;appearance:none;padding-right:38px;background:var(--inp) var(--arr) no-repeat right 14px center/14px;cursor:pointer}
+.fancy select{background:var(--arr) no-repeat right 14px center/14px,linear-gradient(180deg,#fafbfc,#fff)}
+summary{list-style:none}summary::-webkit-details-marker{display:none}summary::before{content:"";display:inline-block;width:7px;height:7px;border-right:2.5px solid var(--lk);border-bottom:2.5px solid var(--lk);transform:rotate(-45deg);margin:0 11px 2px 2px;transition:transform .2s}details[open]>summary::before{transform:rotate(45deg) translate(-2px,-2px)}
+input[type=radio]{width:auto}
+/* fancy extras */
+.fancy body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(40vmax 40vmax at 15% 10%,rgba(21,101,216,.13),transparent 60%),radial-gradient(35vmax 35vmax at 85% 20%,rgba(123,140,255,.15),transparent 60%),radial-gradient(45vmax 45vmax at 50% 100%,rgba(120,200,255,.12),transparent 60%);animation:au 18s ease-in-out infinite alternate}
+@keyframes au{to{transform:translate3d(0,-3%,0) scale(1.08)}}
+@keyframes up{from{opacity:0;transform:translateY(16px)}}@keyframes gs{from{background-position:0 0}to{background-position:100% 0}}@keyframes ti{from{opacity:0;transform:translate(-50%,12px)}}
+.fancy main>*,.fancy .grid>.card{animation:up .55s cubic-bezier(.2,.8,.2,1) backwards}.fancy .grid>.card:nth-child(2){animation-delay:.07s}.fancy .grid>.card:nth-child(3){animation-delay:.14s}.fancy .grid>.card:nth-child(4){animation-delay:.21s}
+.fancy .wm{background-size:200% 100%;animation:gs 6s ease-in-out infinite alternate}
+.fancy .card{position:relative}.fancy .card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%),rgba(109,134,255,.16),transparent 70%)}.fancy .card:hover::after{opacity:1}
+.fancy button{position:relative;overflow:hidden}.fancy button::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);transform:translateX(-120%);transition:transform .6s}.fancy button:hover::after{transform:translateX(120%)}
+.fancy .search input{border-radius:999px;padding:13px 22px;box-shadow:0 12px 30px -16px rgba(21,101,216,.55)}
+.fancy .dd{background:rgba(255,255,255,.9);backdrop-filter:blur(16px) saturate(1.5);border-radius:20px;border-color:#dbe3f2;animation:pop .18s}
+.fancy .card p a{background:linear-gradient(currentColor,currentColor) 0 100%/0 1.5px no-repeat;transition:background-size .25s}.fancy .card p a:hover{background-size:100% 1.5px;text-decoration:none}
+.fancy ::selection{background:rgba(21,101,216,.22)}.logo .mark{transition:transform .3s}.fancy .logo:hover .mark{transform:rotate(-8deg) scale(1.12)}
+.fancy .toast{backdrop-filter:blur(10px);background:rgba(28,36,50,.85);animation:ti .25s;box-shadow:0 12px 30px -10px rgba(0,0,0,.5)}
+#tp{display:none}.fancy #tp{display:block;position:fixed;right:20px;bottom:22px;width:46px;height:46px;padding:0;border-radius:50%;opacity:0;pointer-events:none;transform:translateY(10px);z-index:25;font-size:20px;transition:opacity .25s,transform .25s}.fancy #tp.on{opacity:1;pointer-events:auto;transform:none}
+.rpr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 
-<script>
-(function () {
-  var statusEl = document.getElementById('status');
-  var logEl = document.getElementById('log');
-  document.getElementById('origin').textContent = location.origin;
+/* ===== editor: insert-between strips ===== */
+.ins{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;opacity:.42;margin:-3px 0 9px;transition:opacity .15s}
+.ins:hover,.ins:focus-within{opacity:1}.ins button{padding:2px 11px;font-size:13px;box-shadow:none}
+@media(hover:none){.ins{opacity:.9}}
+.ut{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+select#th{width:auto;padding:5px 36px 5px 14px;border-radius:999px;font-size:15px}
 
-  function log(msg) {
-    var li = document.createElement('li');
-    li.textContent = msg;
-    logEl.appendChild(li);
-  }
+/* ===== Blersjda recognition icons ===== */
+.bz{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 12px}.bz a{display:inline-flex;border-radius:50%;transition:transform .2s}
+.bz a:hover{transform:translateY(-2px) scale(1.08);text-decoration:none}.bz a.cur{outline:2px solid var(--lk);outline-offset:3px}.bz img{border-radius:22%}
+.bzi{display:flex;justify-content:center;margin:2px 0 10px}.bzi img{border-radius:20px;box-shadow:0 8px 20px -8px rgba(0,0,0,.5)}
+.bzd{display:inline-block;position:relative;border-radius:50%;flex:none}
+.bzd i{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.35)}
+.bzd em{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,255,255,.6)}
+.bzd b{position:absolute;border-radius:50%;background:#0f0a29;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 
-  function setStatus(msg, cls) {
-    statusEl.textContent = msg;
-    statusEl.className = cls || '';
-  }
+/* ===== THEME: dark (dark fast, dark fancy, rainforest, ocean share these variables) ===== */
+html.dk{--bg:#0e1320;--card:#171e2e;--tx:#e6ebf5;--mu:#9aa6bd;--ln:#2b3650;--lk:#7db0ff;--lkb:#1f2d4a;--btn:#2b6fe0;--inp:#101726;--code:#232d42;--pre:#1a2234;--mark:rgba(255,214,10,.3);
+--arr:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237db0ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")}
+html.dk .vb{background:#3a3210;border-color:#5a4d12;color:#f6e7a8}
+html.dk .err,html.dk .del{color:#ff8a80}html.dk .ok,html.dk .add{color:#6ee7a8}
+html.dk ::selection{background:rgba(125,176,255,.35)}
+html.dk .toast{background:#e6ebf5;color:#0e1320}
+/* dark fancy */
+html.dkf body{background:linear-gradient(180deg,#0e1424 0,#0a0f1c 480px,#070a13);background-attachment:fixed}
+html.dkf header{background:rgba(14,20,36,.78);box-shadow:0 8px 24px -18px rgba(0,0,0,.8)}
+html.dkf .card{background:linear-gradient(160deg,#1a2338,#121928) padding-box,linear-gradient(145deg,#31456e,#1a2338 45%,#2a3a5e) border-box;border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.4),0 16px 36px -20px rgba(0,0,0,.8)}
+html.dkf h1,html.dkf .info h4{--gt:linear-gradient(100deg,#eef2fb,#7db0ff 70%,#a9b8ff)}
+html.dkf h2,html.dkf h3,html.dkf .mo .md h3{--gt:linear-gradient(90deg,#dfe7f7,#7db0ff 80%)}
+html.dkf .wm,html.dkf footer b{--gt:linear-gradient(100deg,#9cc2ff,#7db0ff 45%,#b8c4ff 80%,#dfe4ff)}
+html.dkf h2{border-image:linear-gradient(90deg,#34456a,transparent) 1}
+html.dkf .info,html.dkf .blk,html.dkf details,html.dkf .pv{background:linear-gradient(180deg,#1c2639,#151d2d)}
+html.dkf .chip{background:linear-gradient(180deg,#1c2639,#151d2d) padding-box,linear-gradient(135deg,#34456a,#1f2a42) border-box}
+html.dkf .ai{background:linear-gradient(135deg,#1b2a48,#161f33)}
+html.dkf .mp,html.dkf .md{background:linear-gradient(180deg,#1b2437,#141b2b);box-shadow:0 24px 60px -18px rgba(0,0,0,.85)}
+html.dkf input,html.dkf textarea{background:linear-gradient(180deg,#111828,#0e1422)}
+html.dkf select{background:var(--arr) no-repeat right 14px center/14px,linear-gradient(180deg,#111828,#0e1422)}
+html.dkf footer{background:linear-gradient(180deg,rgba(14,20,36,.6),#0a0f1c)}
+html.dkf blockquote{background:linear-gradient(90deg,#1b2a48,#141b2b)}html.dkf th{background:linear-gradient(180deg,#1d2740,#161e30)}
+html.dkf summary{background:linear-gradient(90deg,#8bb8ff,#b4c0ff);-webkit-background-clip:text;background-clip:text}
+html.dkf button.g{background:linear-gradient(180deg,#232e47,#1a2335);color:#9cc2ff;box-shadow:inset 0 0 0 1px #34415f}
+html.dkf .dd{background:rgba(20,28,46,.94);border-color:#2b3650}
+html.dkf .list a:hover{background:linear-gradient(90deg,rgba(125,176,255,.16),transparent)}
+html.dkf ::-webkit-scrollbar-thumb{background:#3a4764}
+html.dkf .fancy .card p a{color:#9cc2ff}
 
-  async function run() {
-    logEl.textContent = '';
-    setStatus('Working…');
+/* ===== THEME: Muddy Rainforest + Ocean (dynamic; JS sets --b0..--b4 backgrounds, --t0..--t4 opposite text, --ba/--ta buttons) ===== */
+html.rt{--ln:rgba(255,255,255,.2);--lk:#e8f4ff;--code:rgba(0,0,0,.3);--pre:rgba(0,0,0,.3);--mark:rgba(255,230,120,.35)}
+html.rt body{color:var(--t0);background:var(--pat2),var(--pat) 0 0/120px,var(--b0);background-attachment:fixed;animation:dr 120s linear infinite}
+@keyframes dr{to{background-position:0 0,240px 120px,0 0}}
+html.rt body::before,html.rt .hero::before{display:none}
+html.rt header,html.rt footer{background:var(--pat) 0 0/90px,var(--b1);backdrop-filter:none;color:var(--t1);border-color:rgba(255,255,255,.14);box-shadow:0 8px 24px -14px #000a}
+html.rt header::after{opacity:.3}
+html.rt footer b{color:inherit!important}
+html.rt .card{background:var(--pat) 0 0/80px,var(--b2);border:1px solid rgba(255,255,255,.16);color:var(--t2)}
+html.rt .info,html.rt .chip,html.rt .blk,html.rt details,html.rt .pv,html.rt .ai,html.rt th{background:var(--b3);color:var(--t3);border-color:rgba(255,255,255,.18)}
+html.rt .chip:hover{background:var(--b4);color:var(--t4)}
+html.rt input,html.rt textarea{background:var(--b3);color:var(--t3);border-color:rgba(255,255,255,.28)}
+html.rt select{background:var(--arr) no-repeat right 14px center/14px,var(--b3);color:var(--t3);border-color:rgba(255,255,255,.28)}
+html.rt .md,html.rt .mp,html.rt .dd{background:var(--pat) 0 0/80px,var(--b4);color:var(--t4);border-color:rgba(255,255,255,.2)}
+html.rt ::placeholder{color:inherit;opacity:.55}
+html.rt a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+html.rt .logo,html.rt .list a,html.rt .chip,html.rt .mp a,html.rt .bz a,html.rt a.chip{text-decoration:none}
+html.rt .mu,html.rt .info dt,html.rt .hero .tag{color:inherit;opacity:.8}
+html.rt h1,html.rt h2,html.rt h3,html.rt .info h4,html.rt .wm,html.rt summary{background:none!important;-webkit-text-fill-color:currentColor;color:inherit}
+html.rt h2{border-image:none;border-bottom:1px solid rgba(255,255,255,.28)}
+html.rt .err,html.rt .del{color:#ffb4a8}html.rt .ok,html.rt .add{color:#9af0c2}
+html.rt button{background:var(--ba);color:var(--ta);box-shadow:0 6px 14px -8px #000}
+html.rt button.g{background:var(--b3);color:var(--t3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+html.rt button.d{background:#a3281d;color:#fff}
+html.rt summary::before{border-color:currentColor}
+html.rt blockquote{background:rgba(0,0,0,.25);border-left-color:currentColor}
+html.rt .mp a{color:inherit}html.rt .mp a:hover{background:rgba(255,255,255,.14)}
+html.rt .list a:hover{background:rgba(255,255,255,.1)}
+html.rt #pg{background:var(--ba)}
+html.rt .vb{color:#f6e7a8}
+</style></head><body>
+<header><div class="bar"><a class="logo" href="#/"><span class="wm">Reitcyclopedia</span></a><span class="sp"></span><span id="nav"></span></div></header><div id="vb" class="vb" hidden></div>
+<div id="pg"></div><main id="app"></main>
+<footer><div class="bar"><b style="color:var(--lk)">Reitcyclopedia</b><span class="mu">Free to read, free to write.</span><span class="sp"></span><a href="#/">Home</a><a href="#/browse">Browse</a><a href="#/random">Random</a><a href="#/help">Help</a><select id="th" aria-label="Theme"></select></div></footer>
+<script src="rcx.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,GoogleAuthProvider,GithubAuthProvider,signInWithPopup,signOut,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendEmailVerification,sendPasswordResetEmail,sendSignInLinkToEmail,isSignInWithEmailLink,signInWithEmailLink} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,getDocs,setDoc,collection,query,where,orderBy,limit,writeBatch,increment,serverTimestamp,getCountFromServer,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    if (!('serviceWorker' in navigator)) {
-      setStatus('Service workers are not supported in this browser.', 'err');
-      return;
-    }
+/* ====== PASTE YOUR FIREBASE CONFIG HERE ====== */
+const firebaseConfig={apiKey:"AIzaSyDrf2lcyMJIFO9H3xQQiI0mz8Y-c_Xgg_o",authDomain:"reitcyclopedia.firebaseapp.com",projectId:"reitcyclopedia",storageBucket:"reitcyclopedia.firebasestorage.app",messagingSenderId:"361636082909",appId:"1:361636082909:web:78402de7cb5ff2052e9734"};
+const ADMINS=["bryantreitzel@gmail.com","reitzelbp@s.dcsdk12.org"], MAXB=68000;
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const q=s=>document.querySelector(s), app=q('#app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const slug=t=>t.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const pretty=s=>s.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*\*(.+?)\*\*\*/g,'<b><i>$1</i></b>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/==(.+?)==/g,'<mark>$1</mark>').replace(/\[\[(.+?)\]\]/g,(m,t)=>`<a href="#/a/${slug(t)}">${t}</a>`).replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+const isAdmin=()=>user&&user.emailVerified&&ADMINS.includes(user.email)&&user.providerData.some(p=>p.providerId==='google.com');
+let user=null,PRE=null;
+/* ---- settings (IndexedDB), themes, modals ---- */
+const idb=(m,k,v)=>new Promise(res=>{try{const r=indexedDB.open('rc',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onerror=()=>res();r.onsuccess=()=>{const t=r.result.transaction('s',m==='get'?'readonly':'readwrite'),o=t.objectStore('s'),x=m==='get'?o.get(k):o.put(v,k);x.onsuccess=()=>res(x.result);x.onerror=()=>res()}}catch(e){res()}});
+const MARK='<svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6aaeff"/><stop offset=".55" stop-color="#1565d8"/><stop offset="1" stop-color="#0b3fa8"/></linearGradient><linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9e4f8"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#lg)"/><path d="M32 22c-5-3-12-4-18-3v26c6-1 13 0 18 3 5-3 12-4 18-3V19c-6-1-13 0-18 3z" fill="url(#lg2)"/><path d="M32 22v26" stroke="#1565d8" stroke-width="2.5" stroke-linecap="round"/><path d="M47 8l1.7 4.6L53.3 14l-4.6 1.7L47 20.3l-1.7-4.6L40.7 14l4.6-1.4z" fill="#fff"/></svg>';
+q('.logo').insertAdjacentHTML('afterbegin',MARK);
+const TH=[['fancy','Default Fancy'],['fast','Default Fast'],['darkfancy','Dark Fancy'],['darkfast','Dark Fast'],['rain','Muddy Rainforest'],['ocean','Ocean']];
+q('#th').innerHTML=TH.map(([v,n])=>`<option value="${v}">${n}</option>`).join('');
+let FANCY=true,THEME='fancy';
+const SVGU=s=>'url("data:image/svg+xml,'+encodeURIComponent(s)+'")';
+const PATS={
+ rain:[ 'radial-gradient(70vmax 45vmax at 85% -10%,rgba(190,255,200,.13),transparent 70%)',
+  SVGU("<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><g fill='none' stroke='rgba(255,255,255,.09)' stroke-width='1.2'><path d='M10 110C10 60 50 20 100 12C100 62 62 104 10 110Z'/><path d='M10 110L90 24'/><path d='M60 60l12 2M44 78l12 3M74 44l10 1'/></g><circle cx='104' cy='96' r='4' fill='rgba(140,90,40,.16)'/><circle cx='20' cy='20' r='2.5' fill='rgba(140,90,40,.14)'/></svg>")],
+ ocean:[ 'repeating-radial-gradient(circle at 20% 115%,transparent 0 34px,rgba(255,255,255,.035) 35px 36px)',
+  SVGU("<svg xmlns='http://www.w3.org/2000/svg' width='80' height='48'><g fill='none' stroke-width='1.4'><path d='M0 12Q10 2 20 12T40 12T60 12T80 12' stroke='rgba(255,255,255,.1)'/><path d='M0 36Q10 26 20 36T40 36T60 36T80 36' stroke='rgba(120,255,240,.1)'/></g><circle cx='50' cy='24' r='2.5' fill='none' stroke='rgba(255,255,255,.13)'/><circle cx='12' cy='26' r='1.5' fill='rgba(255,255,255,.1)'/></svg>")]};
+/* colour maths for the dynamic themes: text is the colour-wheel opposite (hue+180, lightness inverted), with a contrast guard */
+const h2r=(h,s,l)=>{s/=100;l/=100;const a=s*Math.min(l,1-l),f=n=>{const k=(n+h/30)%12;return 255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))};return[f(0),f(8),f(4)]};
+const lum=c=>{const v=c.map(x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]};
+const cr=(a,b)=>{const x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const nh=h=>((h%360)+360)%360;
+function opp(h,s,l){const bg=h2r(nh(h),s,l);let th=nh(h+180),ts=Math.min(85,s+30),tl=100-l,c=h2r(th,ts,tl);if(cr(c,bg)<7){tl=l>50?7:95;ts=Math.min(ts,30);c=h2r(th,ts,tl)}return`hsl(${th.toFixed(0)} ${ts.toFixed(0)}% ${tl.toFixed(0)}%)`}
+const DYN={rain:{h:138,r:22,s:30,L:[9,13,17,22,27]},ocean:{h:196,r:22,s:60,L:[12,17,22,28,34]}};
+function dyn(){const r=document.documentElement;if(!r.classList.contains('rt')||document.hidden)return;const P=DYN[THEME];if(!P)return;const t=performance.now()/1000,st=r.style,H=P.h+P.r*Math.sin(t/8);
+ for(let d=0;d<5;d++){let h=H,s=P.s,l=P.L[d]+2*Math.sin(t/6+d*1.7);
+  if(THEME==='rain'){const w=Math.min(.45,.12*d*(1+Math.sin(t/10+d*1.3)));h=H+(30-H)*w;s=P.s+14*w}
+  else h=H+d*5*Math.sin(t/11+d);
+  st.setProperty('--b'+d,`hsl(${nh(h).toFixed(1)} ${s.toFixed(1)}% ${l.toFixed(1)}%)`);st.setProperty('--t'+d,opp(h,s,l))}
+ const bh=THEME==='rain'?30+10*Math.sin(t/7):H+22,bs=THEME==='rain'?44:72,bl=THEME==='rain'?32:38;
+ st.setProperty('--ba',`hsl(${nh(bh).toFixed(1)} ${bs}% ${bl}%)`);st.setProperty('--ta',opp(bh,bs,bl))}
+setInterval(dyn,180);
+function applyTheme(){const r=document.documentElement,t=THEME;FANCY=!/fast/.test(t);
+ r.classList.toggle('fancy',FANCY);r.classList.toggle('dk',/dark|rain|ocean/.test(t));r.classList.toggle('dkf',t==='darkfancy');r.classList.toggle('rt',t==='rain'||t==='ocean');r.dataset.theme=t;
+ const P=PATS[t];['--pat2','--pat'].forEach((k,i)=>P?r.style.setProperty(k,P[i]):r.style.removeProperty(k));
+ q('#th').value=t;dyn()}
+const boot=(async()=>{let v=await idb('get','theme');if(!v){const o=await idb('get','fancy');v=o===false?'fast':'fancy'}if(!TH.some(x=>x[0]===v))v='fancy';THEME=v;applyTheme();return v})();
+addEventListener('pointermove',e=>{if(!FANCY)return;const c=e.target.closest?.('.card');if(c){const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')}},{passive:true});
+const tp=document.createElement('button');tp.id='tp';tp.textContent='↑';tp.setAttribute('aria-label','Back to top');tp.onclick=()=>scrollTo({top:0});document.body.append(tp);addEventListener('scroll',()=>tp.classList.toggle('on',FANCY&&scrollY>500),{passive:true});
+const REPC=['Unnecessary Explicit Language','Abuse & Misinformation','Scamming'];
+async function report(id,title){const r=await modal({title:'Report this article',body:`<p class="mu">Flag “${esc(title)}” for admin review.</p>${REPC.map((c,i)=>`<label style="display:flex;gap:10px;align-items:center;padding:6px 0;cursor:pointer"><input type="radio" name="cat" value="${esc(c)}"${i?'':' checked'}>${esc(c)}</label>`).join('')}<textarea rows="3" maxlength="300" placeholder="Optional details (300 characters max)"></textarea>`,ok:'Submit report',cancel:'Cancel'});
+ if(!r.ok||!REPC.includes(r.sel))return;
+ try{await setDoc(doc(db,'reports',id+'_'+user.uid),{slug:id,title,cat:r.sel,note:(r.val||'').trim().slice(0,300),uid:user.uid,at:serverTimestamp()});toast('Report sent. Thank you.')}catch(e){uiAlert(e.code==='permission-denied'?'You have already reported this article.':e.message)}}
+async function loadReports(){const b=q('#rp');if(!b)return;try{const r=await getDocs(query(collection(db,'reports'),orderBy('at','desc'),limit(30)));if(r.empty){b.innerHTML='<p class="mu">No reports.</p>';return}b.innerHTML='';
+ r.docs.forEach(d=>{const e=d.data(),x=document.createElement('div');x.className='blk';x.innerHTML=`<div class="rpr"><span><b><a href="#/a/${esc(e.slug)}">${esc(e.title)}</a></b> <span class="mu">· ${esc(e.cat)}</span></span><button class="g">Dismiss</button></div>${e.note?`<div class="mu">${esc(e.note)}</div>`:''}`;b.append(x);x.querySelector('button').onclick=async()=>{await writeBatch(db).delete(d.ref).commit();x.remove()}})}catch(e){b.textContent='Could not load reports: '+e.message}}
+q('#th').onchange=e=>{THEME=e.target.value;applyTheme();renderNav();idb('put','theme',THEME)};
+addEventListener('scroll',()=>{const e=document.documentElement;q('#pg').style.width=FANCY?e.scrollTop/((e.scrollHeight-e.clientHeight)||1)*100+'%':'0'},{passive:true});
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.append(d);setTimeout(()=>d.remove(),2800)}
+function modal({title,body,ok='OK',cancel,wide}){return new Promise(res=>{const d=document.createElement('div');d.className='mo';
+ d.innerHTML=`<div class="md${wide?' w':''}" role="dialog" aria-modal="true"><h3>${esc(title||'')}</h3><div>${body}</div><div class="row" style="justify-content:flex-end;margin:16px 0 0">${cancel?`<button class="g" data-r="0">${cancel}</button>`:''}<button data-r="1">${ok}</button></div></div>`;
+ const done=v=>{const val=d.querySelector('textarea')?.value,sel=d.querySelector('input[name=cat]:checked')?.value;d.remove();removeEventListener('keydown',k);res({ok:v,val,sel})},k=e=>e.key==='Escape'&&done(false);
+ d.onclick=e=>{if(e.target===d)done(false);const r=e.target.closest('[data-r]')?.dataset.r;if(r!=null)done(r==='1')};addEventListener('keydown',k);document.body.append(d);(d.querySelector('textarea')||d.querySelector('[data-r="1"]')).focus()})}
+const uiAlert=m=>FANCY?modal({title:'Notice',body:`<p>${esc(m)}</p>`}):Promise.resolve(alert(m));
+const uiConfirm=m=>FANCY?modal({title:'Please confirm',body:`<p>${esc(m)}</p>`,ok:'Confirm',cancel:'Cancel'}).then(r=>r.ok):Promise.resolve(confirm(m));
 
-    try {
-      // Returns every registration on this origin (all scopes).
-      var regs = await navigator.serviceWorker.getRegistrations();
+/* ---- Markdown blocks (lists, quotes, tables, code, h3/h4, rules) ---- */
+function md(s){const L=s.split('\n');let o='',i=0,p=[];const fp=()=>{if(p.length){o+=`<p>${fmt(p.join(' '))}</p>`;p=[]}},row=r=>r.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+ while(i<L.length){const l=L[i];let m;
+  if(l.startsWith('```')){fp();const c=[];i++;while(i<L.length&&!L[i].startsWith('```'))c.push(L[i++]);i++;o+=`<pre class="cb">${esc(c.join('\n'))}</pre>`;continue}
+  if(!l.trim()){fp();i++;continue}
+  if(m=l.match(/^(#{3,4})\s+(.+)/)){fp();o+=`<h${m[1].length}>${fmt(m[2])}</h${m[1].length}>`;i++;continue}
+  if(/^[-*]\s/.test(l)||/^\d+[.)]\s/.test(l)){fp();const ol=/^\d/.test(l),r=ol?/^\d+[.)]\s/:/^[-*]\s/,it=[];while(i<L.length&&r.test(L[i]))it.push(L[i++].replace(r,''));const t=ol?'ol':'ul';o+=`<${t}>${it.map(x=>`<li>${fmt(x)}</li>`).join('')}</${t}>`;continue}
+  if(l.startsWith('> ')){fp();const b=[];while(i<L.length&&L[i].startsWith('> '))b.push(L[i++].slice(2));o+=`<blockquote>${fmt(b.join(' '))}</blockquote>`;continue}
+  if(/^---+$/.test(l.trim())){fp();o+='<hr>';i++;continue}
+  if(l.includes('|')&&/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(L[i+1]||'')&&/-/.test(L[i+1])){fp();const h=row(l);i+=2;const rs=[];while(i<L.length&&L[i].includes('|'))rs.push(row(L[i++]));o+=`<div class="tw"><table><tr>${h.map(c=>`<th>${fmt(c)}</th>`).join('')}</tr>${rs.map(r=>`<tr>${r.map(c=>`<td>${fmt(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;continue}
+  p.push(l);i++}
+ fp();return o}
 
-      if (!regs.length) {
-        setStatus('No service workers found on this origin.', 'ok');
-        return;
-      }
+/* ---- AI article prompt ---- */
+const AIP=()=>['You are helping me write an encyclopedia article for Reitcyclopedia, a free community encyclopedia.','','STEP 1: Ask me what the subject is and what I want included. Wait for my reply.','STEP 2: Write the article and reply with ONLY one JSON code block and nothing else, in exactly this shape:','','{"title":"...","type":"Person|Place|Organization|Concept|Event|General","summary":"...","infobox":[["Label","Value"]],"blocks":[{"t":"h","x":"Heading"},{"t":"p","x":"Paragraph text"},{"t":"l","x":"item one\\nitem two"},{"t":"c","h":"Dropdown title","x":"Hidden text"}]}','','RULES:','- Neutral, factual, encyclopedic tone. Do not invent facts. If unsure, leave it out.','- summary: 40-500 characters, 1-3 sentences, no headings.','- infobox: short label/value rows. Suggested labels by type: '+Object.entries(TPL).map(([k,v])=>k+' ('+(v.join(', ')||'any relevant facts')+')').join('; ')+'. Add other useful rows.','- blocks: at least 3 headings (t "h"), each followed by content. At least 150 characters of body text in total, and under 30,000 characters overall.','- Block types: h = heading, p = paragraph (Markdown allowed), l = bullet list (one item per line, joined with \\n), c = collapsible dropdown (h = its title, x = its Markdown content).','- Markdown allowed in text: **bold**, *italic*, ~~strike~~, ==highlight==, `code`, [text](https://url), [[Other Article Title]] for links to other articles, "- " bullets, "1. " numbered lines, "> " quotes, | pipe | tables |, and ``` code fences.','- No images. The JSON must be valid: escape double quotes and use \\n for line breaks.'].join('\n');
+async function copyAI(){const t=AIP();try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();document.execCommand('copy');a.remove()}toast('Prompt copied. Paste it into a chatbot.')}
+function parseAI(t){const m=t.match(/```(?:json)?\s*([\s\S]*?)```/);let s=(m?m[1]:t).trim();s=s.slice(s.indexOf('{'),s.lastIndexOf('}')+1);const o=JSON.parse(s);
+ if(!o.title||!o.summary||!Array.isArray(o.blocks))throw Error('The reply is missing a title, summary or blocks.');
+ return{title:String(o.title).slice(0,120),type:TPL[o.type]?o.type:'General',summary:String(o.summary),infobox:(o.infobox||[]).filter(r=>Array.isArray(r)&&r[0]&&r[1]).map(r=>[String(r[0]),String(r[1])]),blocks:o.blocks.filter(b=>['h','p','l','c'].includes(b.t)&&b.x!=null).map(b=>({t:b.t,x:String(b.x),...(b.t==='c'?{h:String(b.h||'More')}:{})}))}}
+async function pasteAI(){const r=await modal({title:'Paste the AI response',body:'<p class="mu">Paste the full reply from the chatbot (the JSON block).</p><textarea rows="12"></textarea>',ok:'Review',cancel:'Cancel',wide:1});if(!r.ok)return;
+ let o;try{o=parseAI(r.val||'')}catch(e){return modal({title:"Couldn't read that",body:`<p>${esc(e.message)}</p><p class="mu">Make sure you pasted the complete JSON reply.</p>`})}
+ const v=await modal({title:'Review the article',body:`<div class="pv">${render(o)}<div style="clear:both"></div></div><p class="mu">Filling the editor replaces its current content. You can still edit everything before publishing.</p>`,ok:'Fill the editor',cancel:'Discard',wide:1});
+ if(v.ok){PRE=o;editor(EID)}}
 
-      var removed = 0;
-      for (var i = 0; i < regs.length; i++) {
-        var reg = regs[i];
-        var scope = reg.scope;
-        try {
-          var ok = await reg.unregister();
-          log((ok ? 'Unregistered: ' : 'Not removed: ') + scope);
-          if (ok) removed++;
-        } catch (e) {
-          log('Failed: ' + scope + ' (' + e.message + ')');
-        }
-      }
 
-      setStatus(
-        'Removed ' + removed + ' of ' + regs.length + ' service worker' + (regs.length === 1 ? '' : 's') + '.',
-        removed === regs.length ? 'ok' : 'err'
-      );
-    } catch (e) {
-      setStatus('Could not clear service workers: ' + e.message, 'err');
-    }
-  }
+/* ---- compression: JSON -> gzip -> base64 ---- */
+const b64=u=>{let s='';for(let i=0;i<u.length;i+=8192)s+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(s)};
+const unb=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const pipe=async(d,T)=>new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new T('gzip'))).arrayBuffer());
+const pack=async o=>b64(await pipe(JSON.stringify(o),CompressionStream));
+const unpack=async s=>JSON.parse(new TextDecoder().decode(await pipe(unb(s),DecompressionStream)));
 
-  document.getElementById('again').addEventListener('click', run);
-  run();
-})();
-</script>
-</body>
-</html>
+/* ---- templates ---- */
+const TPL={Person:['Born','Died','Nationality','Occupation'],Place:['Location','Country','Population','Established'],Organization:['Founded','Founder','Headquarters','Industry'],Concept:['Field','Origin','Related'],Event:['Date','Location','Participants','Outcome'],General:[]};
+
+/* ---- analytics (buffered, one write per session) ---- */
+const buf={};let hist=JSON.parse(localStorage.rc_hist||'{}');
+const track=s=>{buf[s]=(buf[s]||0)+1;hist[s]=(hist[s]||0)+1;localStorage.rc_hist=JSON.stringify(hist)};
+async function flush(){const k=Object.keys(buf);if(!k.length)return;const v={};let t=0;k.forEach(s=>{v[s]=increment(buf[s]);t+=buf[s];delete buf[s]});
+ try{await setDoc(doc(db,'stats','s'+Math.floor(Math.random()*3)),{v,t:increment(t)},{merge:true})}catch(e){}}
+addEventListener('visibilitychange',()=>document.hidden&&flush());addEventListener('pagehide',flush);
+
+/* ---- auth ---- */
+function renderNav(){const n=q('#nav');
+ if(!user){n.innerHTML='<button id="si">Sign in</button>';q('#si').onclick=openAuth;return}
+ const nm=esc((user.displayName||user.email).slice(0,18)),it=`<a href="#/new">New article</a>${isAdmin()?'<a href="#/review">Review log</a><a href="#/rebuild">Rebuild index</a>':''}<a href="#/help">Help</a><a href="#" id="so">Sign out</a>`;
+ n.innerHTML=FANCY?`<div class="menu"><button class="g" id="mb" aria-haspopup="true">${nm} ▾</button><div class="mp" id="mn" hidden>${it}</div></div>`:`<span class="mu">${nm}${isAdmin()?' (admin)':''}</span> <a href="#/new"><button class="g">New article</button></a> ${isAdmin()?'<a href="#/review"><button class="g">Review</button></a> ':''}<button id="so" class="g">Sign out</button>`;
+ if(FANCY){const m=q('#mn');q('#mb').onclick=e=>{e.stopPropagation();m.hidden=!m.hidden};m.onclick=()=>m.hidden=true}
+ q('#so').onclick=e=>{e.preventDefault();signOut(auth)}}
+addEventListener('click',()=>{const m=q('#mn');if(m)m.hidden=true});
+onAuthStateChanged(auth,u=>{user=u;renderNav();renderVb();route()});
+
+/* ---- accounts: Google, GitHub, email+password (verified), email link ---- */
+const AU=location.origin+location.pathname;
+const aerr=e=>({'auth/invalid-credential':'Wrong email or password.','auth/email-already-in-use':'That email already has an account. Sign in instead.','auth/weak-password':'Use a password of at least 6 characters.','auth/invalid-email':'Enter a valid email address.','auth/account-exists-with-different-credential':'This email already uses a different sign-in method. Use that one.','auth/popup-closed-by-user':' ','auth/cancelled-popup-request':' ','auth/too-many-requests':'Too many attempts. Wait a bit and try again.','auth/operation-not-allowed':'That sign-in method is not enabled in Firebase yet.'}[e.code]??e.message);
+const closeAuth=()=>document.querySelector('.mo [data-r]')?.click();
+function openAuth(){
+ modal({title:'Sign in to Reitcyclopedia',ok:'Close',body:`<div class="ab"><button class="g" data-p="google">Continue with Google</button><button class="g" data-p="github">Continue with GitHub</button>
+ <p class="mu" style="text-align:center;margin:4px 0">or use your email</p>
+ <input id="ae" type="email" placeholder="Email" autocomplete="email"><input id="ap" type="password" placeholder="Password" autocomplete="current-password">
+ <div class="row"><button data-p="in">Sign in</button><button class="g" data-p="up">Create account</button></div>
+ <div class="row"><button class="g" data-p="link">Email me a sign-in link</button><button class="g" data-p="reset">Forgot password</button></div><div id="am" class="mu"></div></div>`});
+ const m=document.querySelector('.mo'),say=(t,c)=>{const a=m.querySelector('#am');a.className=c||'mu';a.textContent=t};
+ m.addEventListener('click',async e=>{const p=e.target.dataset?.p;if(!p)return;const em=m.querySelector('#ae').value.trim(),pw=m.querySelector('#ap').value;say('');
+  try{
+   if(p==='google'||p==='github'){await signInWithPopup(auth,p==='google'?new GoogleAuthProvider():new GithubAuthProvider());closeAuth()}
+   else if(p==='in'){await signInWithEmailAndPassword(auth,em,pw);closeAuth()}
+   else if(p==='up'){if(pw.length<6)return say('Use a password of at least 6 characters.','err');const c=await createUserWithEmailAndPassword(auth,em,pw);await sendEmailVerification(c.user,{url:AU});say('Account created. Open the verification link we emailed you (check spam), then click "I\'ve verified" in the yellow bar.','ok')}
+   else if(p==='link'){if(!em)return say('Enter your email first.','err');await sendSignInLinkToEmail(auth,em,{url:AU,handleCodeInApp:true});localStorage.rc_email=em;say('Sign-in link sent. Open it in this browser.','ok')}
+   else if(p==='reset'){if(!em)return say('Enter your email first.','err');await sendPasswordResetEmail(auth,em);say('If an account exists for that email, a reset link is on its way.','ok')}
+  }catch(x){say(aerr(x),'err')}})}
+function renderVb(){const b=q('#vb');if(!user||user.emailVerified){b.hidden=true;return}b.hidden=false;
+ b.innerHTML=`Verify <b>${esc(user.email)}</b> to publish or edit. Check your inbox and spam. <button class="g" id="vr">Resend email</button> <button class="g" id="vc">I've verified</button>`;
+ q('#vr').onclick=async()=>{try{await sendEmailVerification(user,{url:AU});toast('Verification email sent.')}catch(e){uiAlert(aerr(e))}};
+ q('#vc').onclick=async()=>{await user.reload();await user.getIdToken(true);user=auth.currentUser;renderVb();renderNav();route();if(!user.emailVerified)toast('Not verified yet.')}}
+(async()=>{if(!isSignInWithEmailLink(auth,location.href))return;let em=localStorage.rc_email;
+ if(!em){const r=await modal({title:'Confirm your email',body:'<p class="mu">Enter the email address the link was sent to.</p><textarea rows="1"></textarea>',ok:'Continue',cancel:'Cancel'});if(!r.ok)return;em=(r.val||'').trim()}
+ try{await signInWithEmailLink(auth,em,location.href);localStorage.removeItem('rc_email');history.replaceState(null,'',AU+'#/');route()}catch(e){uiAlert(aerr(e))}})();
+
+/* ---- router ---- */
+addEventListener('hashchange',route);
+async function route(){const h=location.hash.slice(2),[p,...r]=h.split('/'),a=decodeURIComponent(r.join('/'));await boot;await loadIdx();document.title='Reitcyclopedia';scrollTo({top:0,behavior:'instant'});
+ try{if(p==='a')await view(a);else if(p==='s')await search(a);else if(p==='new')need(()=>editor());else if(p==='edit')need(()=>editor(a));else if(p==='review')await review();else if(p==='rebuild')await rebuild();else if(p==='browse')await browse();else if(p==='t')await byType(a);else if(p==='random')await rnd();else if(p==='help')help();else await home()}
+ catch(e){app.innerHTML=`<div class="card err">Something went wrong: ${esc(e.message)}</div>`}}
+const need=f=>user&&user.emailVerified?f():app.innerHTML=`<div class="card">${user?'Verify your email address first (see the yellow bar above).':'Sign in to continue.'}</div>`;
+const sbox=v=>`<div class="sw"><form class="search row" id="sf"><input name="q" autocomplete="off" placeholder="Search articles" value="${esc(v||'')}"><button>Search</button></form><div class="card list dd" id="sr" hidden></div></div>`;
+function wireSearch(){const f=q('#sf'),i=f.q,o=q('#sr');let R=[],n=0;
+ const more=()=>{const c=R.slice(n,n+20);n+=c.length;o.insertAdjacentHTML('beforeend',c.map(row).join(''))};
+ const go=()=>{const v=i.value.trim();if(!v){o.hidden=true;return}R=srch(v,300);n=0;o.hidden=false;o.scrollTop=0;o.innerHTML='';if(R.length)more();else o.innerHTML=`<div class="mu" style="padding:10px">No match. <a href="#/new/${slug(v)}">Write this article</a>.</div>`};
+ o.onscroll=()=>{if(n<R.length&&o.scrollTop+o.clientHeight>=o.scrollHeight-40)more()};
+ i.oninput=go;i.onfocus=()=>{if(i.value.trim())go()};f.onsubmit=e=>{e.preventDefault();if(R[0])location.hash='#/a/'+R[0].i;return false};IDXCB=()=>{if(!o.hidden)go()}}
+
+/* ---- search index: ONE compressed doc (meta/index), cached locally, drives search/categories/home/browse/random ---- */
+const IDXD=doc(db,'meta','index');let IDX={rev:0,n:0,e:[]},BYS={},IDXP=null,IDXCB=null;
+const normQ=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+function setIdx(rev,n,rows){IDX={rev,n,e:rows.map(r=>({i:r[0],t:r[1],y:r[2],s:r[3],u:r[4],k:normQ(r[1]),ks:normQ(r[3])}))};BYS={};IDX.e.forEach(x=>BYS[slug(x.t)]=x.i);IDX.e.forEach(x=>BYS[x.i]=x.i)}
+const rowsOf=()=>IDX.e.map(x=>[x.i,x.t,x.y,x.s,x.u]);
+const saveIdxCache=()=>idb('put','idx',{rev:IDX.rev,n:IDX.n,rows:rowsOf(),at:Date.now()});
+let IDXAT=0;
+function loadIdx(force){if(IDXP&&!force&&Date.now()-IDXAT<300000)return IDXP;
+ return IDXP=(async()=>{
+  if(!IDX.rev&&!IDX.e.length){const c=await idb('get','idx');if(c&&c.rows){setIdx(c.rev,c.n,c.rows);IDXAT=c.at}}
+  if(!force&&IDXAT&&Date.now()-IDXAT<300000)return;
+  const had=IDX.rev>0||IDX.e.length>0;
+  const run=async()=>{try{const s=await getDoc(IDXD);let ch=false;if(s.exists()){const d=s.data();if(d.rev!==IDX.rev||!had){setIdx(d.rev,d.n,await unpack(d.z));ch=true}}else if(!had)setIdx(0,0,[]);IDXAT=Date.now();await saveIdxCache();IDXCB&&IDXCB();if(ch&&had&&/^(#\/?)?$|^#\/(t|browse)/.test(location.hash))route()}catch(e){}};
+  if(had)run();else await run()})()}
+addEventListener('click',e=>{const o=q('#sr');if(o&&!e.target.closest('.sw'))o.hidden=true});
+function srch(t,lim=15){const n=normQ(t);if(!n)return[];const w=n.split(' '),r=[];
+ for(const x of IDX.e){const k=x.k;let sc=0;if(k===n)sc=100;else if(k.startsWith(n))sc=80;else if(k.includes(' '+n))sc=60;else if(w.every(q=>k.includes(q)))sc=45;else if(k.includes(n))sc=40;else if(w.every(q=>x.ks.includes(q)||k.includes(q)))sc=15;if(sc)r.push([sc-k.length/100,x])}
+ return r.sort((a,b)=>b[0]-a[0]).slice(0,lim).map(a=>a[1])}
+const row=x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.y)} – ${esc(x.s)}</span></a>`;
+const titleOf=id=>(IDX.e.find(x=>x.i===id)||{}).t;
+/* One transaction writes article + index + daily counter together, so the index can never drift. Rules enforce the same. */
+async function txArticle(id,op,meta){const ar=doc(db,'articles',id),day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),lim=isAdmin()?{a:50,e:75}:{a:25,e:15};let out;
+ await runTransaction(db,async tx=>{
+  const is=await tx.get(IDXD),as=await tx.get(ar),cs=op==='delete'?null:await tx.get(cr);
+  const d=is.exists()?is.data():{rev:0,n:0},list=is.exists()?await unpack(d.z):[],cur=as.exists()?as.data():null;
+  if(op==='create'&&cur)throw Error('An article with this title already exists.');
+  if(op!=='create'&&!cur)throw Error('Article no longer exists.');
+  const rev=d.rev+1,rows=list.filter(x=>x[0]!==id);let n=d.n;
+  if(op==='create')n++;if(op==='delete')n=Math.max(0,n-1);
+  if(op!=='delete')rows.push([id,meta.title,meta.type,meta.summary.slice(0,110),Date.now()]);
+  const z=await pack(rows);if(z.length>900000)throw Error('Search index is full. Ask an admin to shard it.');
+  const c=cs&&cs.exists()?cs.data():{a:0,e:0};
+  tx.set(IDXD,{rev,n,z,last:id});
+  if(op==='delete')tx.delete(ar);
+  else if(op==='create'){if(c.a>=lim.a)throw Error('Daily limit reached: '+lim.a+' new articles per day.');tx.set(ar,{...meta,rev:1,idxRev:rev,updated:serverTimestamp()});tx.set(cr,{a:c.a+1,e:c.e})}
+  else{if(c.e>=lim.e)throw Error('Daily limit reached: '+lim.e+' edits per day.');
+   tx.set(doc(db,'articles',id,'revs',String(cur.rev)),{body:cur.body,by:cur.authorName||''});
+   tx.update(ar,{title:meta.title,titleLower:meta.title.toLowerCase(),summary:meta.summary,type:meta.type,body:meta.body,rev:cur.rev+1,idxRev:rev,updated:serverTimestamp()});tx.set(cr,{a:c.a,e:c.e+1});
+   if(meta.drop)tx.delete(meta.drop)}
+  out={rev,n,rows}});
+ setIdx(out.rev,out.n,out.rows);IDXAT=Date.now();saveIdxCache()}
+async function rebuild(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
+ app.innerHTML='<div class="card"><h1>Rebuild search index</h1><p class="mu">Reads every article once and rewrites the index. Use it once to migrate existing articles, or to repair the index after manual database changes.</p><button id="rb">Rebuild now</button> <span id="rbs" class="mu"></span></div>';
+ q('#rb').onclick=async()=>{try{q('#rbs').textContent='Working…';const r=await getDocs(collection(db,'articles')),rows=r.docs.map(d=>{const x=d.data();return[d.id,x.title,x.type,(x.summary||'').slice(0,110),x.updated?.toMillis?.()||0]}),s=await getDoc(IDXD),rev=(s.exists()?s.data().rev:0)+1;
+  await setDoc(IDXD,{rev,n:rows.length,z:await pack(rows),last:'_rebuild'});setIdx(rev,rows.length,rows);await saveIdxCache();q('#rbs').textContent='Done: '+rows.length+' articles indexed.'}catch(e){q('#rbs').textContent='Failed: '+e.message}}}
+/* ---- home (0 reads from the index; trending uses a 30-minute local cache of 3 tiny stat docs) ---- */
+async function getStats(){const c=await idb('get','st');if(c&&Date.now()-c.at<1800000)return c;const st=await Promise.all([0,1,2].map(i=>getDoc(doc(db,'stats','s'+i)))),tot={};let views=0;st.forEach(d=>{if(!d.exists())return;const x=d.data();views+=x.t||0;for(const k in x.v||{})tot[k]=(tot[k]||0)+x.v[k]});const o={tot,views,at:Date.now()};await idb('put','st',o);return o}
+async function home(){await loadIdx();app.innerHTML=`<div class="hero">${MARK}<h1 class="wm">Reitcyclopedia</h1><p class="tag" id="cn">${(IDX.n||IDX.e.length).toLocaleString()} articles and growing. Free to read, free to write.</p></div>${sbox()}<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k}</a>`).join('')}<a class="chip" href="#/random">Random article</a></div><div id="hm"></div>`;wireSearch();
+ const rec=[...IDX.e].sort((a,b)=>b.u-a.u).slice(0,8),mine=Object.entries(hist).filter(([s])=>BYS[s]).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const L=a=>a.map(([s,n])=>`<a href="#/a/${s}">${esc(titleOf(s)||pretty(s))} <span class="mu">${n?'('+n+')':''}</span></a>`).join('')||'<span class="mu">Nothing yet.</span>';
+ q('#hm').innerHTML=`${isAdmin()&&!IDX.e.length?'<div class="card err">The search index is empty. <a href="#/rebuild">Build it now</a>.</div>':''}<div class="grid"><div class="card list"><h3>Trending</h3><div id="tr"><span class="mu">Loading…</span></div></div>
+ <div class="card list"><h3>Recently updated</h3>${rec.map(x=>`<a href="#/a/${x.i}">${esc(x.t)}</a>`).join('')||'<span class="mu">No articles yet.</span>'}</div>
+ <div class="card list"><h3>Based on your reading</h3>${L(mine)}<p class="mu">Kept only on this device.</p></div>
+ <div class="card"><h3>Write for Reitcyclopedia</h3><p class="mu">Anyone with a verified account can publish up to 25 articles and make 15 edits a day on any subject. Stuck? The editor can generate a prompt for an AI chatbot and fill the article in for you to review.</p><a href="#/new"><button>Start an article</button></a> <a href="#/help"><button class="g">Writing guide</button></a></div></div>`;
+ try{const s=await getStats(),top=Object.entries(s.tot).filter(([k])=>BYS[k]).sort((a,b)=>b[1]-a[1]).slice(0,8);if(q('#tr'))q('#tr').innerHTML=L(top)+`<p class="mu">${s.views.toLocaleString()} total page views</p>`}catch(e){if(q('#tr'))q('#tr').innerHTML='<span class="mu">Unavailable.</span>'}}
+async function rnd(){await loadIdx();if(!IDX.e.length)return home();location.replace('#/a/'+IDX.e[Math.floor(Math.random()*IDX.e.length)].i)}
+const chips=()=>`<div class="chips">${Object.keys(TPL).map(k=>`<a class="chip" href="#/t/${k}">${k} <span class="mu">${IDX.e.filter(x=>x.y===k).length}</span></a>`).join('')}</div>`;
+async function browse(){await loadIdx();app.innerHTML=`<div class="card"><h1>Browse</h1>${chips()}<h3>Latest articles</h3><div class="list">${[...IDX.e].sort((a,b)=>b.u-a.u).slice(0,50).map(x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.y)}</span></a>`).join('')||'Nothing here yet.'}</div></div>`}
+async function byType(t){if(!TPL[t])return browse();await loadIdx();app.innerHTML=`<div class="card"><h1>${esc(t)} articles</h1>${chips()}<div class="list">${IDX.e.filter(x=>x.y===t).sort((a,b)=>a.k<b.k?-1:1).map(x=>`<a href="#/a/${x.i}"><b>${esc(x.t)}</b> <span class="mu">${esc(x.s.slice(0,100))}</span></a>`).join('')||'No articles of this type yet.'}</div></div>`}
+function help(){const ex=x=>`<pre class="cb">${esc(x)}</pre>`;app.innerHTML=`<div class="card"><h1>Writing guide</h1><p>Every article needs a title, a type, a summary of 40 to 500 characters, at least one heading, and at least 150 characters of content. Articles are limited to 50 KB compressed.</p>
+<h2>Formatting</h2>${ex('**bold**  *italic*  ~~strike~~  ==highlight==  `code`\n[[Another Article]]  [link text](https://example.com)')}
+<p>Paragraphs and dropdown sections also accept these on their own lines:</p>${ex('### Small heading\n- bullet\n1. numbered\n> quote\n---\n| Name | Year |\n|------|------|\n| Moon | 1969 |\n\n```\ncode block\n```')}
+<h2>Infobox</h2><p>Add one "Label: Value" per line. Choosing a type pre-fills suggested labels.</p>
+<h2>Editing blocks</h2><p>Use the small <b>+ Heading / + Paragraph / + List / + Dropdown</b> buttons between any two blocks to insert one exactly where you want it. <b>Undo</b> and <b>Redo</b> reverse adding, deleting, moving and changing blocks (Ctrl+Z and Ctrl+Y also work outside a text box).</p>
+<h2>AI article prompt</h2><p>In the editor, click <b>Copy prompt</b>, paste it into any chatbot, tell it the subject and what to cover, then copy its reply and click <b>Paste response</b>. You get a preview to approve before anything is filled in. Always check the facts.</p>
+<h2>Themes</h2><p>Pick a theme from the menu at the bottom of any page: Default Fancy, Default Fast, Dark Fancy, Dark Fast, Muddy Rainforest or Ocean.</p>
+<h2>Limits</h2><p>25 new articles and 20 edits per day. Edits to existing articles are reviewed by an admin before they appear.</p></div>`}
+async function search(t){await home();const i=q('#sf').q;i.value=t;i.dispatchEvent(new Event('input'))}
+
+/* ---- Blersjda recognition: the Kit gets its favicon, each game its disc; shown only on those articles, linking only to siblings that exist ---- */
+const FAV="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232b0f4c'/%3E%3Cstop offset='100%25' stop-color='%230f0a29'/%3E%3C/linearGradient%3E%3ClinearGradient id='bGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='50%25' stop-color='%23a855f7'/%3E%3Cstop offset='100%25' stop-color='%23ef4444'/%3E%3C/linearGradient%3E%3Cfilter id='glow' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeGaussianBlur stdDeviation='12' result='blur'/%3E%3CfeComposite in='SourceGraphic' in2='blur' operator='over'/%3E%3C/filter%3E%3Cfilter id='blueGlow' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeGaussianBlur stdDeviation='8' result='blur'/%3E%3CfeComposite in='SourceGraphic' in2='blur' operator='over'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='512' height='512' rx='120' fill='url(%23bg)' stroke='%23ec4899' stroke-width='10'/%3E%3Cpath d='M350 50 L200 250 L280 250 L150 480 L300 300 L220 300 Z' fill='%2306b6d4' opacity='0.8' filter='url(%23blueGlow)'/%3E%3Cpath d='M400 100 L250 280 L320 280 L200 450 L340 320 L270 320 Z' fill='%2338bdf8' opacity='0.6' filter='url(%23blueGlow)'/%3E%3Ctext x='50%25' y='55%25' font-family='Impact, sans-serif' font-size='380' font-weight='900' fill='url(%23bGrad)' text-anchor='middle' dominant-baseline='central' filter='url(%23glow)' stroke='%23ffffff' stroke-width='8'%3EB%3C/text%3E%3Cpath d='M280 150 L180 280 L240 280 L160 400 L260 310 L200 310 Z' fill='%2300ffff' opacity='0.9' filter='url(%23blueGlow)'/%3E%3C/svg%3E";
+const BZ={'blersjda-kit':{kit:1},'blersjda-madness':{g:'madness',a:'#ec4899',b:'#3b82f6'},'blersjda-strokes':{g:'strokes',a:'#f59e0b',b:'#14b8a6'},'blersjda-burn':{g:'burn',a:'#f97316',b:'#dc2626'},'blersjda-cap':{g:'cap',a:'#22c55e',b:'#a855f7'}};
+const GL={burn:'<path d="M16 3 C18 9 25 11 25 19 A9 9 0 0 1 7 19 C7 15 9 13 10 11 C11 14 12 15 14 15 C14 10 13 7 16 3 Z" fill="#fff"/>',cap:'<path d="M4 6 H28 V22 H16 L9 28 V22 H4 Z" fill="#fff"/>',madness:'<path d="M18 3 L7 18 H15 L13 29 L25 13 H17 Z" fill="#fff"/>',strokes:'<path d="M4 26 C8 10 12 28 16 14 C19 4 22 20 28 6"/>'};
+function bzIcon(id,s){const z=BZ[id];if(!z)return'';if(z.kit)return`<img src="${FAV}" width="${s}" height="${s}" alt="Blersjda Kit icon">`;
+ return`<span class="bzd" role="img" aria-label="${esc(pretty(id))} disc" style="width:${s}px;height:${s}px;background:conic-gradient(from 20deg,${z.a},#ffffffcc,${z.b},#ffffff88,${z.a},#ffffffcc,${z.b},#ffffff88,${z.a});box-shadow:0 0 ${s/4}px ${z.a}88,inset 0 0 ${s/6}px rgba(0,0,0,.35)"><i style="inset:${s*.06}px"></i><em style="inset:${s*.27}px;background:linear-gradient(135deg,${z.a},${z.b})"><svg viewBox="0 0 32 32" width="${s*.3}" height="${s*.3}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${GL[z.g]}</svg></em><b style="left:${s/2-s*.05}px;top:${s/2-s*.05}px;width:${s*.1}px;height:${s*.1}px"></b></span>`}
+const bzStrip=cur=>BZ[cur]?`<div class="bz" aria-label="Blersjda family">${Object.keys(BZ).filter(k=>k===cur||BYS[k]).map(k=>`<a ${k===cur?'':`href="#/a/${k}"`} class="${k===cur?'cur':''}" title="${esc(titleOf(k)||pretty(k))}">${bzIcon(k,36)}</a>`).join('')}<span class="mu">Blersjda family</span></div>`:'';
+
+/* ---- read ---- */
+async function load(id){const s=await getDoc(doc(db,'articles',id));if(!s.exists())return null;const d=s.data();return{id,...d,...await unpack(d.body)}}
+function render(a){const sid=slug(a.title),z=BZ[sid];let h=`<h1>${esc(a.title)}</h1><div class="mu">${esc(a.type)}</div>${bzStrip(sid)}`;
+ if(a.infobox?.length||z)h+=`<aside class="info">${z?`<div class="bzi">${bzIcon(sid,z.kit?84:92)}</div>`:''}${a.infobox?.length?`<h4>${esc(a.title)}</h4><dl>${a.infobox.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${fmt(v)}</dd>`).join('')}</dl>`:''}</aside>`;
+ h+=`<p>${fmt(a.summary)}</p>`;
+ for(const b of a.blocks)h+=b.t==='h'?`<h2>${fmt(b.x)}</h2>`:b.t==='p'?md(b.x):b.t==='l'?`<ul>${b.x.split('\n').filter(Boolean).map(i=>`<li>${fmt(i)}</li>`).join('')}</ul>`:`<details><summary>${fmt(b.h||'More')}</summary>${md(b.x)}</details>`;
+ return h}
+async function view(id){app.innerHTML='<div class="card">Loading…</div>';const al=BYS[id];if(al&&al!==id)return location.replace('#/a/'+al);const a=await load(id);
+ if(!a){if(BYS[id]){setIdx(IDX.rev,IDX.n,rowsOf().filter(r=>r[0]!==id));saveIdxCache();loadIdx(true)}app.innerHTML=`<div class="card"><h1>${esc(pretty(id))}</h1><p>This article doesn't exist yet.</p>${user?`<a href="#/new/${id}"><button>Create it</button></a>`:'Sign in to create it.'}</div>`;return}
+ track(id);document.title=a.title+' – Reitcyclopedia';
+ app.innerHTML=`<div class="card">${render(a)}<div style="clear:both"></div><hr style="border:0;border-top:1px solid var(--ln)"><div class="row mu">Revision ${a.rev} · by ${esc(a.authorName||'unknown')} ${user?`<a href="#/edit/${id}"><button class="g">Edit</button></a>`:''} ${user?'<button class="g" id="rpt">Report</button>':''} ${isAdmin()?'<button class="d" id="dl">Delete</button>':''}</div></div>`;
+ if(user)q('#rpt').onclick=()=>report(id,a.title);
+ if(isAdmin())q('#dl').onclick=async()=>{if(await uiConfirm('Delete this article?')){try{await txArticle(id,'delete');location.hash='#/'}catch(e){uiAlert(e.message)}}}}
+
+/* ---- editor ---- */
+let E,EID=null,HU=[],HR=[];const CPI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
+/* undo/redo history of the block list (adding, deleting, moving, changing type) */
+const snap=()=>JSON.stringify(E.blocks);
+const updU=()=>{const u=q('#un'),r=q('#re');if(u)u.disabled=!HU.length;if(r)r.disabled=!HR.length};
+const commit=()=>{HU.push(snap());if(HU.length>100)HU.shift();HR=[];updU()};
+const undo=()=>{if(!HU.length)return;HR.push(snap());E.blocks=JSON.parse(HU.pop());drawB();updU()};
+const redo=()=>{if(!HR.length)return;HU.push(snap());E.blocks=JSON.parse(HR.pop());drawB();updU()};
+addEventListener('keydown',e=>{if(!q('#bl')||!(e.ctrlKey||e.metaKey)||e.altKey||/^(TEXTAREA|INPUT|SELECT)$/.test(e.target.tagName||''))return;const k=e.key.toLowerCase();if(k==='z'){e.preventDefault();e.shiftKey?redo():undo()}else if(k==='y'){e.preventDefault();redo()}});
+async function editor(id){EID=id||null;let a=null;
+ if(id){a=await load(id);if(!a)return app.innerHTML='<div class="card">Article not found.</div>'}
+ E=a?{title:a.title,type:a.type,summary:a.summary,infobox:a.infobox||[],blocks:a.blocks,base:a.rev}:{title:location.hash.startsWith('#/new/')?pretty(location.hash.slice(7)):'',type:'General',summary:'',infobox:[],blocks:[{t:'h',x:''},{t:'p',x:''}]};
+ if(PRE){E={...E,...PRE};PRE=null}
+ HU=[];HR=[];
+ app.innerHTML=`<div class="card"><h1>${id?'Edit':'New'} article</h1><div class="ai"><div><b>AI article prompt</b><div class="mu">Copy the prompt, paste it into any chatbot, answer its questions, then paste its reply here to review.</div></div><button class="g" id="cp" title="Copy AI prompt">${CPI} Copy prompt</button><button class="g" id="ps">Paste response</button></div>
+ ${id&&!isAdmin()?'<p class="mu">Edits are reviewed by an admin before they go live.</p>':''}
+ <div class="row"><input id="t" placeholder="Title" value="${esc(E.title)}" maxlength="120"><select id="ty" style="max-width:190px">${Object.keys(TPL).map(k=>`<option${k==E.type?' selected':''}>${k}</option>`).join('')}</select></div>
+ <p class="mu">Summary (40–500 characters, required). Use [[Article Title]] for internal links, **bold**, [text](https://url) for external links.</p>
+ <textarea id="sm" rows="3">${esc(E.summary)}</textarea>
+ <p class="mu">Infobox, one "Label: Value" per line (shown in the side bar).</p>
+ <textarea id="ib" rows="5"></textarea>
+ <h3 style="margin-top:18px">Content</h3><p class="mu">Paragraphs and dropdowns support Markdown: lists, quotes, tables, code, *italic*, ==highlight==. See Help.</p>
+ <div class="ut"><button class="g" id="un" title="Undo (Ctrl+Z)">↶ Undo</button><button class="g" id="re" title="Redo (Ctrl+Y)">Redo ↷</button><span class="mu">Use the + buttons between blocks to insert exactly where you want.</span></div><div id="bl"></div>
+ <div id="er" class="err"></div><div class="row"><button id="sv">${id&&!isAdmin()?'Submit edit for review':'Publish'}</button><span class="mu" id="sz"></span></div></div>`;
+ q('#ty').onchange=()=>{if(!q('#ib').value.trim())fillIb()};q('#ib').value=E.infobox.map(([k,v])=>k+': '+v).join('\n');if(!E.infobox.length)fillIb();
+ drawB();updU();
+ q('#bl').oninput=e=>{const f=e.target.dataset.f;if(!f)return;if(f==='t')commit();const i=e.target.closest('.blk').dataset.i;E.blocks[i][f]=e.target.value};
+ q('#bl').onchange=e=>{if(e.target.dataset.f==='t')drawB()};
+ q('#bl').onclick=e=>{const t=e.target.closest('button');if(!t)return;const B=E.blocks;
+  if(t.dataset.add){const at=+t.closest('.ins').dataset.at;commit();B.splice(at,0,{t:t.dataset.add,x:'',h:''});drawB();const ta=q('#bl .blk[data-i="'+at+'"] textarea');if(ta)ta.focus();return}
+  const a=t.dataset.a,i=+(t.closest('.blk')?.dataset.i);if(!a)return;
+  if(a==='rm'){commit();B.splice(i,1)}else{const j=a==='up'?i-1:i+1;if(j<0||j>=B.length)return;commit();[B[i],B[j]]=[B[j],B[i]]}drawB()};
+ q('#un').onclick=undo;q('#re').onclick=redo;
+ q('#cp').onclick=copyAI;q('#ps').onclick=pasteAI;q('#sv').onclick=save}
+const fillIb=()=>q('#ib').value=TPL[q('#ty').value].map(k=>k+': ').join('\n');
+const INS=i=>`<div class="ins" data-at="${i}">${[['h','Heading'],['p','Paragraph'],['l','List'],['c','Dropdown']].map(([t,n])=>`<button class="g" data-add="${t}" title="Insert a ${n.toLowerCase()} here">+ ${n}</button>`).join('')}</div>`;
+const blkH=(b,i)=>`<div class="blk" data-i="${i}"><div class="row"><select data-f="t" style="max-width:190px">${[['h','Heading'],['p','Paragraph'],['l','List (one per line)'],['c','Dropdown section']].map(([v,n])=>`<option value="${v}"${b.t==v?' selected':''}>${n}</option>`).join('')}</select>${b.t=='c'?`<input data-f="h" placeholder="Dropdown title" value="${esc(b.h||'')}">`:''}<span class="sp"></span><button class="g" data-a="up" title="Move up">↑</button><button class="g" data-a="dn" title="Move down">↓</button><button class="g" data-a="rm" title="Delete">✕</button></div><textarea data-f="x" rows="${b.t=='h'?1:5}">${esc(b.x||'')}</textarea></div>`;
+function drawB(){q('#bl').innerHTML=INS(0)+E.blocks.map((b,i)=>blkH(b,i)+INS(i+1)).join('')}
+async function save(){const er=q('#er');er.textContent='';
+ try{const title=q('#t').value.trim(),type=q('#ty').value,summary=q('#sm').value.trim();
+ const infobox=q('#ib').value.split('\n').map(l=>{const i=l.indexOf(':');return i>0?[l.slice(0,i).trim(),l.slice(i+1).trim()]:null}).filter(x=>x&&x[1]);
+ const blocks=E.blocks.filter(b=>(b.x||'').trim()).map(b=>({t:b.t,x:b.x.trim(),...(b.t=='c'?{h:(b.h||'').trim()}:{})}));
+ if(title.length<3||title.length>120)throw Error('Title must be 3–120 characters.');
+ if(summary.length<40||summary.length>500)throw Error('Summary must be 40–500 characters.');
+ if(!blocks.some(b=>b.t==='h'))throw Error('Add at least one heading.');
+ if(blocks.reduce((n,b)=>n+b.x.length,0)<150)throw Error('Add at least 150 characters of body content.');
+ const body=await pack({infobox,blocks});q('#sz').textContent=Math.round(body.length/1024*10)/10+' KB compressed';
+ if(body.length>MAXB)throw Error('Article is over the 50 KB compressed limit. Shorten it.');
+ const id=EID||slug(title);if(!id)throw Error('Invalid title.');
+ await loadIdx();const own=BYS[slug(title)];if(own&&own!==id)throw Error('Another article already uses that name.');
+ const meta={title,titleLower:title.toLowerCase(),type,summary,body,authorUid:user.uid,authorName:user.displayName||''};
+ if(!EID){if(BYS[id])throw Error('An article with this title already exists.');await txArticle(id,'create',meta);location.hash='#/a/'+id}
+ else if(isAdmin()){await txArticle(id,'update',meta);location.hash='#/a/'+(slug(title)||id)}
+ else{const day='d'+new Date().toISOString().slice(0,10).replace(/-/g,''),cr=doc(db,'users',user.uid,'days',day),cs=await getDoc(cr),c=cs.exists()?cs.data():{a:0,e:0};
+  if(c.e>=15)throw Error('Daily limit reached: 15 edits per day.');
+  const b=writeBatch(db);b.set(doc(collection(db,'edits')),{...meta,updated:serverTimestamp(),slug:id,baseRev:E.base,status:'pending'});b.set(cr,{a:c.a,e:c.e+1});await b.commit();
+  app.innerHTML='<div class="card"><h1>Edit submitted</h1><p>An admin will review it soon.</p><a href="#/a/'+id+'">Back to article</a></div>'}
+ }catch(e){er.textContent=e.code==='permission-denied'?'Not allowed. You may be over a daily limit or need a verified Google account.':e.message}}
+
+/* ---- admin review (line diff against current revision) ---- */
+const lines=o=>[`Title: ${o.title}`,`Type: ${o.type}`,`Summary: ${o.summary}`,...(o.infobox||[]).map(([k,v])=>`[info] ${k}: ${v}`),...o.blocks.flatMap(b=>[`[${b.t}${b.h?' '+b.h:''}]`,...b.x.split('\n')])];
+function diff(a,b){const A=new Set(a),B=new Set(b);return [...a.filter(x=>!B.has(x)).map(x=>`<span class="del">− ${esc(x)}</span>`),...b.filter(x=>!A.has(x)).map(x=>`<span class="add">+ ${esc(x)}</span>`)].join('\n')||'No visible changes.'}
+async function review(){if(!isAdmin())return app.innerHTML='<div class="card">Admins only.</div>';
+ app.innerHTML='<div class="card"><h1>Reported articles</h1><div id="rp">Loading…</div></div><div class="card"><h1>Edit review log</h1><div id="rv">Loading…</div></div>';loadReports();
+ const r=await getDocs(query(collection(db,'edits'),where('status','==','pending'),limit(20)));
+ if(r.empty)return q('#rv').innerHTML='<p class="mu">No pending edits.</p>';
+ q('#rv').innerHTML='';
+ for(const d of r.docs){const e=d.data(),cur=await load(e.slug),n=await unpack(e.body),box=document.createElement('div');box.className='blk';
+  const stale=cur&&cur.rev!==e.baseRev;
+  box.innerHTML=`<b><a href="#/a/${e.slug}">${esc(e.title)}</a></b> <span class="mu">by ${esc(e.authorName)} · based on rev ${e.baseRev}</span>${stale?`<div class="err">Stale: the article is now at rev ${cur.rev}. The diff below compares against the current version. Approving overwrites newer changes.</div>`:''}<pre class="df">${cur?diff(lines(cur),lines({...e,...n})):'Article missing'}</pre><div class="row"><button class="a">Approve</button><button class="d x">Reject</button></div>`;
+  q('#rv').append(box);
+  box.querySelector('.a').onclick=async()=>{try{await txArticle(e.slug,'update',{title:e.title,type:e.type,summary:e.summary,body:e.body,drop:d.ref});box.remove()}catch(x){uiAlert(x.message)}};
+  box.querySelector('.x').onclick=async()=>{await writeBatch(db).delete(d.ref).commit();box.remove()}}}
+route();
+</script></body></html>
